@@ -1,40 +1,28 @@
 import React from "react";
-import styled from "styled-components";
 import tw from "twin.macro";
+import styled from "styled-components";
 //eslint-disable-next-line
 import { css } from "styled-components/macro";
 import {
   SectionHeading,
   Subheading as SubheadingBase,
 } from "components/misc/Headings.js";
-import { SectionDescription } from "components/misc/Typography.js";
-
 import defaultCardImage from "images/shield-icon.svg";
-
+import { FeatureCardsData } from "AppData/MainFeatureData";
+import { SectionDescription } from "components/misc/Typography.js";
 import { ReactComponent as SvgDecoratorBlob3 } from "images/svg-decorator-blob-3.svg";
 
-import SupportIconImage from "images/support-icon.svg";
-import ShieldIconImage from "images/shield-icon.svg";
-import CustomizeIconImage from "images/customize-icon.svg";
-import FastIconImage from "images/fast-icon.svg";
-import ReliableIconImage from "images/reliable-icon.svg";
-import SimpleIconImage from "images/simple-icon.svg";
-
 const Container = tw.div`relative`;
-
 const ThreeColumnContainer = styled.div`
   ${tw`flex flex-col items-center md:items-stretch md:flex-row flex-wrap md:justify-center max-w-screen-lg mx-auto py-20 md:py-24`}
 `;
 const Subheading = tw(SubheadingBase)`mb-4`;
 const Heading = tw(SectionHeading)`w-full`;
 const Description = tw(SectionDescription)`w-full text-center`;
-
 const VerticalSpacer = tw.div`mt-10 w-full`;
-
 const Column = styled.div`
   ${tw`md:w-1/2 lg:w-1/3 max-w-sm`}
 `;
-
 const Card = styled.div`
   ${tw`flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left h-full mx-4 px-2 py-8`}
   .imageContainer {
@@ -43,20 +31,16 @@ const Card = styled.div`
       ${tw`w-6 h-6`}
     }
   }
-
   .textContainer {
     ${tw`sm:ml-4 mt-4 sm:mt-2`}
   }
-
   .title {
     ${tw`mt-4 tracking-wide font-bold text-2xl leading-none`}
   }
-
   .description {
     ${tw`mt-1 sm:mt-4 font-medium text-secondary-100 leading-loose`}
   }
 `;
-
 const DecoratorBlob = styled(SvgDecoratorBlob3)`
   ${tw`pointer-events-none absolute right-0 bottom-0 w-64 opacity-25 transform translate-x-32 translate-y-48 `}
 `;
@@ -67,54 +51,8 @@ export default ({
   subheading = "Features",
   description = "Ashburn Tech boasts ultra-fast connectivity, cutting-edge infrastructure, and a vibrant tech community, fostering innovation and collaboration for unparalleled success in the digital age.",
 }) => {
-  /*
-   * This componets has an array of object denoting the cards defined below. Each object in the cards array can have the key (Change it according to your need, you can also add more objects to have more cards in this feature component) or you can directly pass this using the cards prop:
-   *  1) imageSrc - the image shown at the top of the card
-   *  2) title - the title of the card
-   *  3) description - the description of the card
-   *  If a key for a particular card is not provided, a default value is used
-   */
 
-  const defaultCards = [
-    {
-      imageSrc: ShieldIconImage,
-      title: "High-Speed Connectivity",
-      description:
-        "Ashburn Tech offers lightning-fast internet speeds, ensuring seamless data transfer and reduced latency for optimal performance",
-    },
-    {
-      imageSrc: SupportIconImage,
-      title: "State-of-the-Art Facilities",
-      description:
-        "With modern, purpose-built facilities, Ashburn Tech provides an ideal environment for tech-driven enterprises to thrive and innovate.",
-    },
-    {
-      imageSrc: CustomizeIconImage,
-      title: "Robust Security",
-      description:
-        "Top-notch cybersecurity measures safeguard valuable data, guaranteeing a secure environment for sensitive operations and confidential information.",
-    },
-    {
-      imageSrc: ReliableIconImage,
-      title: "Collaborative Ecosystem",
-      description:
-        "A dynamic tech community encourages networking, knowledge-sharing, and synergistic partnerships, fueling creativity and growth",
-    },
-    {
-      imageSrc: FastIconImage,
-      title: "Scalability and Flexibility",
-      description:
-        "Adaptable spaces and scalable resources accommodate evolving business needs, enabling companies to expand and succeed without constraints.",
-    },
-    {
-      imageSrc: SimpleIconImage,
-      title: "Access to Expertise",
-      description:
-        "Proximity to tech experts, thought leaders, and educational institutions offers a rich pool of knowledge and talent, fostering continuous learning and development.",
-    },
-  ];
-
-  if (!cards) cards = defaultCards;
+  if (!cards) cards = FeatureCardsData;
 
   return (
     <Container>

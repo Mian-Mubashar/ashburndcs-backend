@@ -91,9 +91,8 @@ export default ({
       ) : (
         <PrimaryLink
           css={roundedHeaderButton && tw`rounded-full`}
-          onClick={() => {
-            window.localStorage.clear();
-            navigate("/");
+          onClick={() => {window.localStorage.clear()
+          navigate('/')
           }}
         >
           Sign Out
