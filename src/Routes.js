@@ -12,7 +12,8 @@ import MainLandingPage from "MainLandingPage.js";
 import PrivacyPolicyPage from "pages/PrivacyPolicy.js";
 import TermsOfServicePage from "pages/TermsOfService.js";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import WebDevelopment from "DetailPage/WebDevelopment";
+import ELearning from "pages/E-learning";
 export default function AppRoutes() {
   // If you want to disable the animation just use the disabled `prop` like below on your page's component
   // return <AnimationRevealPage disabled>xxxxxxxxxx</AnimationRevealPage>;
@@ -32,6 +33,10 @@ export default function AppRoutes() {
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/web" element={<WebDevelopment />} />
+          <Route path="/e-learning" element={<ELearning />} />
+
+
         </Routes>
       </Router>
     </>

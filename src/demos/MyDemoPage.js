@@ -7,7 +7,7 @@ import Hero from "components/hero/TwoColumnWithInput.js";
 import GetStarted from "components/cta/GetStartedLight.js";
 import Blog from "components/blogs/GridWithFeaturedPost.js";
 import AnimationRevealPage from "helpers/AnimationRevealPage.js";
-import Footer from "components/footers/FiveColumnWithInputForm.js";
+import Footer from "components/footers/MiniCenteredFooter";
 import Features from "components/features/ThreeColWithSideImage.js";
 import Pricing from "components/pricing/TwoPlansWithDurationSwitcher.js";
 import Testimonial from "components/testimonials/TwoColumnWithImageAndRating.js";

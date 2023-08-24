@@ -73,7 +73,7 @@ export default ({
         Home
       </NavLink>
       <NavLink onClick={() => navigate("/services")}>Our Services</NavLink>
-      <NavLink onClick={() => navigate("/about-us")}>Courses</NavLink>
+      <NavLink onClick={() => navigate("/e-learning")}>E-Learning</NavLink>
       <NavLink onClick={() => navigate("/about-us")}>About Us</NavLink>
       <NavLink onClick={() => navigate("/contact-us")}>Contact Us</NavLink>
       {!Token ? (

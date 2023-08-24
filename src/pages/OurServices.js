@@ -6,8 +6,8 @@ import SupportIconImage from "images/support-icon.svg";
 import CustomerLoveIconImage from "images/simple-icon.svg";
 import Features from "components/features/ThreeColSimple.js";
 import AnimationRevealPage from "helpers/AnimationRevealPage.js";
-import Footer from "components/footers/FiveColumnWithInputForm.js";
-import TeamCardGrid from "components/cards/ProfileThreeColGrid.js";
+import Footer from "components/footers/MiniCenteredFooter";
+// import TeamCardGrid from "components/cards/ProfileThreeColGrid.js";
 import MainFeature1 from "components/features/TwoColWithButton.js";
 import { serviceData } from "AppData/ServiceData";
 
@@ -31,33 +31,33 @@ export default () => {
         />
       ))}
     
-      <Features
+    <Features
         subheading={<Subheading>Our Values</Subheading>}
         heading="We follow these."
-        description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        description="Optimize operations through automated workflows, minimizing manual efforts while maximizing productivity and resource utilization"
         cards={[
           {
             imageSrc: SupportIconImage,
-            title: "24/7 Support",
+            title: "Bespoke Tech Solutions",
             description:
-              "Lorem ipsum donor amet siti ceali placeholder text alipiscing elit sed do eiusmod temport",
+              "Tailored digital innovations to meet unique business needs",
           },
           {
             imageSrc: ShieldIconImage,
-            title: "Strong Teams",
+            title: "Efficiency Amplification",
             description:
-              "Lorem ipsum donor amet siti ceali placeholder text alipiscing elit sed do eiusmod temport",
+              "Streamlined processes through automation and optimization",
           },
           {
             imageSrc: CustomerLoveIconImage,
-            title: "Customer Satisfaction",
+            title: "End-to-End Support",
             description:
-              "Lorem ipsum donor amet siti ceali placeholder text alipiscing elit sed do eiusmod temport",
+              "Comprehensive assistance from concept to implementation, driving success in every project",
           },
         ]}
         linkText=""
       />
-      <TeamCardGrid subheading={<Subheading>Our Team</Subheading>} />
+      {/* <TeamCardGrid subheading={<Subheading>Our Team</Subheading>} /> */}
 
       <Footer />
     </AnimationRevealPage>

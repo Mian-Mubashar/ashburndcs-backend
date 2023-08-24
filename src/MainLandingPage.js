@@ -6,7 +6,7 @@ import Pricing from "components/pricing/Pricing";
 import GetStarted from "components/cta/GetStartedLight.js";
 import FeatureStats from "components/features/StatFeature";
 import AnimationRevealPage from "helpers/AnimationRevealPage.js";
-import Footer from "components/footers/FiveColumnWithInputForm.js";
+import Footer from "components/footers/MiniCenteredFooter";
 import Features from "components/features/ThreeColWithSideImage.js";
 import { FeatureData, MainFeatureData } from "AppData/MainFeatureData";
 import Testimonial from "components/testimonials/Testimonial";

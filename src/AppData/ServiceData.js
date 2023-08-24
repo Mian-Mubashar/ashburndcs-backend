@@ -8,8 +8,38 @@ import MAD from "images/services/MAD.jpg";
 import MIS from "images/services/MIS.jpg";
 import SEO from "images/services/SEO.jpg";
 import SMM from "images/services/SMM.jpg";
+import RII from "images/services/RII.jpg";
+import SR from "images/services/SR.jpg";
+import PM from "images/services/PM.jpg";
 
 export const serviceData = [
+  {
+    heading: "Rapid Issue Identification",
+    subheading: "Data Center Troubleshoot",
+    description:
+      "Our experienced technicians are skilled in identifying the root causes of data center problems, whether they involve hardware, software, connectivity, or environmental factors",
+    primaryButtonText: "More Info",
+    imageSrc: RII,
+    textOnLeft: false,
+  },
+  {
+    heading: "Swift Resolutions",
+    subheading: "Data Center Troubleshoot",
+    description:
+      "We understand the critical nature of data center disruptions. Our team is dedicated to delivering rapid solutions, minimizing impact, and restoring your operations promptly",
+    primaryButtonText: "More Info",
+    imageSrc: SR,
+    textOnLeft: true,
+  },
+  {
+    heading: "Proactive Maintenance",
+    subheading: "Data Center Troubleshoot",
+    description:
+      "Beyond troubleshooting, we provide insights to help prevent future issues. Our proactive maintenance recommendations are designed to enhance the stability and reliability of your data center infrastructure.",
+    primaryButtonText: "More Info",
+    imageSrc: PM,
+    textOnLeft: false,
+  },
   {
     heading: "Website Development",
     subheading: "IT Service",
