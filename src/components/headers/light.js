@@ -35,7 +35,7 @@ export const PrimaryLink = tw(NavLink)`
 `;
 
 export const LogoLink = styled(NavLink)`
-  ${tw`flex items-center font-black border-b-0 text-2xl! ml-0!`};
+  ${tw`items-center font-black border-b-0 text-2xl! ml-0!`};
 
   img {
     ${tw`w-10 mr-3`}
@@ -91,8 +91,9 @@ export default ({
       ) : (
         <PrimaryLink
           css={roundedHeaderButton && tw`rounded-full`}
-          onClick={() => {window.localStorage.clear()
-          navigate('/')
+          onClick={() => {
+            window.localStorage.clear();
+            navigate("/");
           }}
         >
           Sign Out
@@ -107,15 +108,19 @@ export default ({
 
   const defaultLogoLink = (
     <LogoLink onClick={() => navigate("/")}>
+     <span className="flex">
       <img src={logo} alt="logo" />
-      ASHBURN
+      ASHBURN</span>
+      <span style={{ fontSize: "50%" }}> LLC</span><br/>
+      <span style={{ fontSize: "50%" }}> Data Center & IT services</span>
+
     </LogoLink>
   );
 
   logoLink = logoLink || defaultLogoLink;
   links = links || defaultLinks;
   return (
-    <Header className={className || "header-light"}>
+    <Header style={className} className={className || "header-light"}>
       <DesktopNavLinks css={collapseBreakpointCss.desktopNavLinks}>
         {logoLink}
         {links}
@@ -146,12 +151,6 @@ export default ({
     </Header>
   );
 };
-
-/* The below code is for generating dynamic break points for navbar.
- * Using this you can specify if you want to switch
- * to the toggleable mobile navbar at "sm", "md" or "lg" or "xl" above using the collapseBreakpointClass prop
- * Its written like this because we are using macros and we can not insert dynamic variables in macros
- */
 
 const collapseBreakPointCssMap = {
   sm: {

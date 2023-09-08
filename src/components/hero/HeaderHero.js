@@ -30,7 +30,7 @@ const HighlightedText = tw.span`text-primary-500`;
 export default () => {
   return (
     <>
-      <Header />
+      <Header/>
       <Container>
         <TwoColumn>
           <LeftColumn>
@@ -38,9 +38,6 @@ export default () => {
            <HighlightedText>Ashburn</HighlightedText> Your IT Solution Partner. Expertise in Data Centers, Networking, Cloud, and Security. Empowering Success through Technology Excellence.
             </Heading>
             <Paragraph><HighlightedText>Reaching New Heights, Together</HighlightedText></Paragraph>
-            {/* <CustomersLogoStrip>
-              <img src={CustomersLogoStripImage} alt="Our Customers" />
-            </CustomersLogoStrip> */}
           </LeftColumn>
           <RightColumn>
             <IllustrationContainer>
