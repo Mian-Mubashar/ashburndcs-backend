@@ -10,8 +10,8 @@ export default () => (
   <AnimationRevealPage>
     <Hero />
     <Features />
-    <Blog />
-    <ContactUsForm />
-    <Footer />
+
+    <Footer />    {/* <Blog />
+    <ContactUsForm /> */}
   </AnimationRevealPage>
 );

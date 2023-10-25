@@ -12,6 +12,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "FireBase";
 import { Toast } from "helpers/Alert";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Container = tw.div`relative`;
 const TwoColumn = tw.div`flex flex-col md:flex-row justify-between max-w-screen-xl mx-auto py-20 md:py-24`;
@@ -78,16 +79,21 @@ export default ({
 
     } else {
       try {
-         await addDoc(collection(db, "contact-user"), {
+        axios.post('http://localhost:4200/api/contact', {
           name: data.name,
           email: data.email,
           subject: data.subject,
           message: data.message,
+        })
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
         });
-
         // console.log("Document written with ID: ", docRef.id);
-      Toast({message:"Submitted Data Successfully"})
-      navigate("/");
+      // Toast({message:"Submitted Data Successfully"})
+      // navigate("/");
 
 
       } catch (e) {

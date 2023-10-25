@@ -10,15 +10,15 @@ import {
 import { SectionDescription as DescriptionBase } from "components/misc/Typography";
 
 import styled from "styled-components";
-import {
-  SectionHeading,
-} from "components/misc/Headings.js";
+import { SectionHeading } from "components/misc/Headings.js";
 import { motion } from "framer-motion";
-import SEO from "../images/services/SEO.jpg";
+import DataCenter from "../images/services/DataCenter1.jpg";
+import ITservice from "../images/services/ITservice1.jpg";
+import Lplatform from "../images/services/Lplatform.jpg";
+
 
 
 const Container = tw.div`relative`;
-
 
 const SectionDescription = tw(
   DescriptionBase
@@ -56,39 +56,73 @@ export default () => {
     },
   };
   return (
-      <Container tw="bg-gray-100 -mx-8 -mt-8 pt-8 px-8">
-        <Content2Xl>
-          <SectionContainer id="landingPageDemos">
-            <SectionHeading>Explore Services</SectionHeading>
-            <SectionDescription>
-              We have {"4"} premade landing pages. Click on the "View Live Demo"
-              button to see them in action. Customizing or Creating your own
-              custom landing page is really simple by using our UI components.
-            </SectionDescription>
-            <PreviewCards>
-              {Object.entries(`<>>`).map(([pageName, page], index) => (
-                <PreviewCardContainer key={Math.random()}>
-                  <PreviewCard
-                    initial="rest"
-                    animate="rest"
-                    whileHover="hover"
-                    href={''}
-                    target="_blank"
-                  >
-                    <PreviewCardImageContainer>
-                      <PreviewCardImage
-                        transition={{ type: "tween" }}
-                        variants={previewImageAnimationVariants}
-                        $imageSrc={SEO}
-                      />
-                    </PreviewCardImageContainer>
-                    <PreviewButton>View Live Demo</PreviewButton>
-                  </PreviewCard>
-                </PreviewCardContainer>
-             ))} 
-            </PreviewCards>
-          </SectionContainer>
-        </Content2Xl>
-      </Container>
+    <Container tw="bg-gray-100 -mx-8 -mt-8 pt-8 px-8">
+      <Content2Xl>
+        <SectionContainer id="landingPageDemos">
+          <SectionHeading>Explore Services</SectionHeading>
+          <SectionDescription>
+            We have {"4"} premade landing pages. Click on the "View Live Demo"
+            button to see them in action. Customizing or Creating your own
+            custom landing page is really simple by using our UI components.
+          </SectionDescription>
+          <PreviewCards>
+            <PreviewCardContainer key={Math.random()}>
+              <PreviewCard
+                initial="rest"
+                animate="rest"
+                whileHover="hover"
+                href={""}
+                target="_blank"
+              >
+                <PreviewCardImageContainer>
+                  <PreviewCardImage
+                    transition={{ type: "tween" }}
+                    variants={previewImageAnimationVariants}
+                    $imageSrc={DataCenter}
+                  />
+                </PreviewCardImageContainer>
+                <PreviewButton>Data Center</PreviewButton>
+              </PreviewCard>
+            </PreviewCardContainer>
+            <PreviewCardContainer key={Math.random()}>
+              <PreviewCard
+                initial="rest"
+                animate="rest"
+                whileHover="hover"
+                href={""}
+                target="_blank"
+              >
+                <PreviewCardImageContainer>
+                  <PreviewCardImage
+                    transition={{ type: "tween" }}
+                    variants={previewImageAnimationVariants}
+                    $imageSrc={ITservice}
+                  />
+                </PreviewCardImageContainer>
+                <PreviewButton>IT Services</PreviewButton>
+              </PreviewCard>
+            </PreviewCardContainer>
+            <PreviewCardContainer key={Math.random()}>
+              <PreviewCard
+                initial="rest"
+                animate="rest"
+                whileHover="hover"
+                href={""}
+                target="_blank"
+              >
+                <PreviewCardImageContainer>
+                  <PreviewCardImage
+                    transition={{ type: "tween" }}
+                    variants={previewImageAnimationVariants}
+                    $imageSrc={Lplatform}
+                  />
+                </PreviewCardImageContainer>
+                <PreviewButton>learning Platform</PreviewButton>
+              </PreviewCard>
+            </PreviewCardContainer>
+          </PreviewCards>
+        </SectionContainer>
+      </Content2Xl>
+    </Container>
   );
 };

@@ -20,6 +20,7 @@ export default () => {
   return (
     <AnimationRevealPage>
       <Hero roundedHeaderButton={true} />
+      {/* main cardsss */}
       <Cards/>
       {FeatureData.map((value, i) => (
         <Features

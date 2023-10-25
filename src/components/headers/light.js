@@ -108,12 +108,15 @@ export default ({
 
   const defaultLogoLink = (
     <LogoLink onClick={() => navigate("/")}>
-     <span className="flex">
-      <img src={logo} alt="logo" />
-      ASHBURN</span>
-      <span style={{ fontSize: "50%" }}> LLC</span><br/>
-      <span style={{ fontSize: "50%" }}> Data Center & IT services</span>
-
+      <span style={{ display: "flex" }}>
+        <img src={logo} alt="logo" />
+        <span style={{ display: "grid" }}>
+          <span>
+            ASHBURN <span style={{ fontSize: "50%" }}> LLC</span>
+          </span>
+          <span style={{ fontSize: "50%" }}> Data Center & IT services</span>
+        </span>
+      </span>
     </LogoLink>
   );
 

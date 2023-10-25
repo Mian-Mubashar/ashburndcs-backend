@@ -112,6 +112,7 @@ export default ({
 
       });
   };
+  
   return (
     <AnimationRevealPage>
       <Container>
