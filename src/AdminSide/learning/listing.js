@@ -1,10 +1,12 @@
 import axios from "axios";
 import { PrimaryButton } from "components/misc/Buttons";
 import { useEffect, useState } from "react";
+import CreateModal from "./create";
 
 export default function ElearnListing() {
   const [tableData, setTableData] = useState([]);
-
+  const [isCreate, setIsCreate] = useState(false);
+  const handleCreate = () => setIsCreate(!isCreate);
   useEffect(() => {
     axios
       .get("http://localhost:4200/api/learning/view")
@@ -23,7 +25,7 @@ export default function ElearnListing() {
   return (
     <>
       <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-        <PrimaryButton buttonRounded={true}>Contact Us</PrimaryButton>
+        <PrimaryButton buttonRounded={true} onClick={handleCreate}>Add new Data</PrimaryButton>
       </div>
       <ul className="divide-y divide-gray-100">
         {tableData?.map((data) => (
@@ -66,6 +68,11 @@ export default function ElearnListing() {
           </li>
         ))}
       </ul>
+      <CreateModal
+        open={isCreate}
+        setOpen={setIsCreate}
+        handleOpen={handleCreate}
+      />
     </>
   );
 }

@@ -8,7 +8,7 @@ import {
   Subheading as SubheadingBase,
 } from "components/misc/Headings.js";
 import defaultCardImage from "images/shield-icon.svg";
-import { FeatureCardsData } from "AppData/MainFeatureData";
+import { FeatureCardsData, FeatureCardsDataL1, FeatureCardsDataL2, FeatureCardsDataL3 } from "AppData/MainFeatureData";
 import { SectionDescription } from "components/misc/Typography.js";
 import { ReactComponent as SvgDecoratorBlob3 } from "images/svg-decorator-blob-3.svg";
 
@@ -41,6 +41,8 @@ const Card = styled.div`
     ${tw`mt-1 sm:mt-4 font-medium text-secondary-100 leading-loose`}
   }
 `;
+const HighlightedText = tw.span`text-primary-500`;
+
 const DecoratorBlob = styled(SvgDecoratorBlob3)`
   ${tw`pointer-events-none absolute right-0 bottom-0 w-64 opacity-25 transform translate-x-32 translate-y-48 `}
 `;
@@ -61,7 +63,52 @@ export default ({
         <Heading>{heading}</Heading>
         {description && <Description>{description}</Description>}
         <VerticalSpacer />
-        {cards.map((card, i) => (
+        {FeatureCardsDataL1?.map((card, i) => (
+          <Column key={i}>
+            <Card>
+              <span className="imageContainer">
+                <img src={card.imageSrc || defaultCardImage} alt="" />
+              </span>
+              <span className="textContainer">
+                <span className="title">{card.title || "Fully Secure"}</span>
+                <p className="description">
+                  {card.description ||
+                    "Lorem ipsum donor amet siti ceali ut enim ad minim veniam, quis nostrud."}
+                </p>
+              </span>
+            </Card>
+          </Column>
+        ))}
+      </ThreeColumnContainer>
+      
+      <ThreeColumnContainer>
+        {subheading && <Subheading>{subheading}</Subheading>}
+        <Heading>ADCS <HighlightedText>L2 (Level 2) Tech Support</HighlightedText></Heading>
+        {description && <Description>{description}</Description>}
+        <VerticalSpacer />
+        {FeatureCardsDataL2?.map((card, i) => (
+          <Column key={i}>
+            <Card>
+              <span className="imageContainer">
+                <img src={card.imageSrc || defaultCardImage} alt="" />
+              </span>
+              <span className="textContainer">
+                <span className="title">{card.title || "Fully Secure"}</span>
+                <p className="description">
+                  {card.description ||
+                    "Lorem ipsum donor amet siti ceali ut enim ad minim veniam, quis nostrud."}
+                </p>
+              </span>
+            </Card>
+          </Column>
+        ))}
+      </ThreeColumnContainer>
+      <ThreeColumnContainer>
+        {subheading && <Subheading>{subheading}</Subheading>}
+        <Heading>ADCS <HighlightedText>L3 (Level 3) Tech Support</HighlightedText></Heading>
+        {description && <Description>{description}</Description>}
+        <VerticalSpacer />
+        {FeatureCardsDataL3?.map((card, i) => (
           <Column key={i}>
             <Card>
               <span className="imageContainer">

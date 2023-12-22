@@ -40,7 +40,7 @@ const SvgDotPattern1 = tw(
   SvgDotPatternIcon
 )`absolute bottom-0 right-0 transform translate-y-1/2 translate-x-1/2 -z-10 opacity-50 text-primary-500 fill-current w-24`;
 
-export default () => {
+export default ({ service = false, handleOpen }) => {
   const navigate = useNavigate();
 
   const [data, setData] = useState({
@@ -73,12 +73,13 @@ export default () => {
         formData.append("primaryButtonText", data.primaryButtonText);
         formData.append("file", data.file);
 
-        axios.post("http://localhost:4200/api/learning/create", formData)
+        axios
+          .post("http://localhost:4200/api/learning/create", formData)
           .then(function (response) {
-            navigate("/new-data");
-
+            // navigate("/new-data");
+            handleOpen();
             Toast({ message: response.message });
-          })
+          });
 
         // console.log("Document written with ID: ", docRef.id);
         // Toast({message:"Submitted Data Successfully"})
@@ -92,76 +93,70 @@ export default () => {
   const uploadImage = (event) => {
     setData({ ...data, file: event.target.files[0] });
   };
+  
   return (
-    <Container>
-      <Content>
-        <FormContainer>
-          <div tw="mx-auto max-w-4xl">
-            <h2>Organize your data</h2>
-            <TwoColumn>
-              <Column>
-                <InputContainer>
-                  <Label htmlFor="name-input">HEADING</Label>
-                  <Input
-                    required
-                    id="heading"
-                    type="text"
-                    name="heading"
-                    placeholder="someThing"
-                    onChange={handleChange}
-                  />
-                </InputContainer>
+    <div tw="mx-auto max-w-4xl">
+      <h2>Organize your data</h2>
+      <TwoColumn>
+        <Column>
+          <InputContainer>
+            <Label htmlFor="name-input">HEADING</Label>
+            <Input
+              required
+              id="heading"
+              type="text"
+              name="heading"
+              placeholder="someThing"
+              onChange={handleChange}
+            />
+          </InputContainer>
 
-                <InputContainer>
-                  <Label htmlFor="email-input">SUB HEADING</Label>
-                  <Input
-                    id="subHeading"
-                    type="text"
-                    name="subHeading"
-                    placeholder="someThing"
-                    onChange={handleChange}
-                  />
-                </InputContainer>
-                <InputContainer>
-                  <Label htmlFor="email-input">BUTTON TEXT</Label>
-                  <Input
-                    id="primaryButtonText"
-                    type="text"
-                    name="primaryButtonText"
-                    placeholder="someThing"
-                    onChange={handleChange}
-                  />
-                </InputContainer>
-                <InputContainer>
-                  <Label htmlFor="email-input">PHOTO</Label>
-                  <Input
-                    id="primaryButtonText"
-                    type="file"
-                    accept="image/*"
-                    name="primaryButtonText"
-                    placeholder="someThing"
-                    onChange={uploadImage}
-                  />
-                </InputContainer>
-              </Column>
-              <Column>
-                <InputContainer tw="flex-1">
-                  <Label htmlFor="name-input">DESCRIPTION</Label>
-                  <TextArea
-                    id="description"
-                    name="description"
-                    onChange={handleChange}
-                    placeholder="E.g. Details about your data"
-                  />
-                </InputContainer>
-              </Column>
-            </TwoColumn>
+          <InputContainer>
+            <Label htmlFor="email-input">SUB HEADING</Label>
+            <Input
+              id="subHeading"
+              type="text"
+              name="subHeading"
+              placeholder="someThing"
+              onChange={handleChange}
+            />
+          </InputContainer>
+          <InputContainer>
+            <Label htmlFor="email-input">BUTTON TEXT</Label>
+            <Input
+              id="primaryButtonText"
+              type="text"
+              name="primaryButtonText"
+              placeholder="someThing"
+              onChange={handleChange}
+            />
+          </InputContainer>
+          <InputContainer>
+            <Label htmlFor="email-input">PHOTO</Label>
+            <Input
+              id="primaryButtonText"
+              type="file"
+              accept="image/*"
+              name="primaryButtonText"
+              placeholder="someThing"
+              onChange={uploadImage}
+            />
+          </InputContainer>
+        </Column>
+        <Column>
+          <InputContainer tw="flex-1">
+            <Label htmlFor="name-input">DESCRIPTION</Label>
+            <TextArea
+              id="description"
+              name="description"
+              onChange={handleChange}
+              placeholder="E.g. Details about your data"
+            />
+          </InputContainer>
+        </Column>
+      </TwoColumn>
 
-            <SubmitButton onClick={addData}>Submit</SubmitButton>
-          </div>
-          <SvgDotPattern1 />
-        </FormContainer>
-      </Content>
-    </Container>
+      <SubmitButton onClick={addData}>Submit</SubmitButton>
+    </div>
   );
 };

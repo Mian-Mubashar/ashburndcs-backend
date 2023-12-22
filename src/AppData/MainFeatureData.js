@@ -95,11 +95,74 @@ export const FeatureData = [
   {
     heading: (
       <>
-        ADCS <HighlightedText>Features</HighlightedText>
+        ADCS <HighlightedText>L1 (Level 1) Tech Support</HighlightedText>
       </>
     ),
     subheading: "Features",
     description:
-      "ADCS Tech boasts ultra-fast connectivity, cutting-edge infrastructure, and a vibrant tech community, fostering innovation and collaboration for unparalleled success in the digital age.",
+      "At ADCS, we pride ourselves on delivering top-notch tech support services to ensure a seamless experience for our customers. Our tech support is organized into three distinct levels, each playing a crucial role in addressing and resolving your technical issues.",
+  },
+];
+export const FeatureCardsDataL1 = [
+  
+  {
+    imageSrc: ReliableIconImage,
+    title: "First Line of Assistance",
+    description:
+      "Our L1 support team is your initial point of contact, ready to address and resolve your basic technical inquiries",
+  },
+  {
+    imageSrc: FastIconImage,
+    title: "Swift Issue Resolution",
+    description:
+      "We excel in quick problem diagnosis and offer solutions for common technical challenges",
+  },
+  {
+    imageSrc: SimpleIconImage,
+    title: "Escalation Process",
+    description:
+      "For more complex issues, our L1 team efficiently escalates problems to higher tiers for in-depth resolution",
+  },
+];
+export const FeatureCardsDataL2 = [
+  
+  {
+    imageSrc: ReliableIconImage,
+    title: "Advanced Troubleshooting",
+    description:
+      "Our L2 support specialists are experts in handling more intricate technical problems that may require a deeper understanding",
+  },
+  {
+    imageSrc: FastIconImage,
+    title: "Specialized Assistance",
+    description:
+      "From networking issues to software glitches, our L2 team provides specialized solutions to ensure your systems run smoothly",
+  },
+  {
+    imageSrc: SimpleIconImage,
+    title: "Collaborative Approach",
+    description:
+      " Working closely with other departments, L2 support ensures comprehensive issue resolution and continuous improvement",
+  },
+];
+export const FeatureCardsDataL3 = [
+  
+  {
+    imageSrc: ReliableIconImage,
+    title: "Highest Expertise",
+    description:
+      "Our L3 support is the pinnacle of technical expertise, tackling the most challenging and critical issues with precision",
+  },
+  {
+    imageSrc: FastIconImage,
+    title: "Strategic Solutions",
+    description:
+      "L3 specialists collaborate with product development teams to address underlying software and hardware challenges",
+  },
+  {
+    imageSrc: SimpleIconImage,
+    title: "Guidance and Training",
+    description:
+      "Providing guidance to lower support tiers, L3 ensures the continuous improvement of our support services",
   },
 ];

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import tw from "twin.macro";
 import Header from "components/headers/light.js";
 import ShieldIconImage from "images/shield-icon.svg";
@@ -11,12 +11,28 @@ import Footer from "components/footers/MiniCenteredFooter";
 import MainFeature1 from "components/features/TwoColWithButton.js";
 import { ElearningData } from "AppData/E-learningData";
 import ModalExample from "components/myComponent/Modal";
+// import axios from "axios";
 
 const Subheading = tw.span`uppercase tracking-wider text-sm`;
 
 export default () => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(!open);
+  // const [tableData, setTableData] = useState([]);
+  // useEffect(() => {
+  //   axios
+  //     .get("http://localhost:4200/api/learning/view")
+  //     .then((response) => {
+  //       if (response) {
+  //         setTableData(response?.data?.data);
+  //         console.log("response", response);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       alert(error);
+  //     });
+  // }, []);
+
   return (
     <AnimationRevealPage>
       <Header />
@@ -34,7 +50,19 @@ export default () => {
           contact={handleOpen}
         />
       ))}
-
+      {/* {tableData?.map((value, i) => (
+        <MainFeature1
+          subheading={<Subheading>{value.subheading}</Subheading>}
+          heading={value.heading}
+          description={value.description}
+          imageSrc={value?.imageSrc?.src}
+          buttonRounded={true}
+          primaryButtonUrl={`/E-learning/${value._id}`}
+          primaryButtonText={"More Info"}
+          textOnLeft={i % 2 === 0 ? true : false}
+          contact={handleOpen}
+        />
+      ))} */}
       <Features
         subheading={<Subheading>Our Values</Subheading>}
         heading="We follow these."

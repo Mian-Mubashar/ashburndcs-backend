@@ -40,7 +40,7 @@ export default function CreateModal({ open, handleOpen, setOpen }) {
                     X
                   </button>
                   <div className="relative flex w-full items-center overflow-hidden bg-white px-4 pb-8 pt-14 shadow-2xl sm:px-6 sm:pt-8 md:p-6 lg:p-8">
-                    <DataUploadFrom handleOpen={handleOpen} />
+                    <DataUploadFrom service handleOpen={handleOpen} />
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
