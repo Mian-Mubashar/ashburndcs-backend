@@ -47,7 +47,28 @@ export default function AppRoutes() {
           <Route path="/new-data" element={<DataUploadFrom />} />
           <Route path="/check-data" element={<DataTable />} />
           <Route path="/edit-data/:id" element={<DataUploadFrom />} />
-
+          <Route
+            path="/success"
+            element={
+              <>
+                <h1>Payment Successful</h1>
+                <button onClick={() => (window.location.href = "/")}>
+                  Move to Dashboard
+                </button>
+              </>
+            }
+          />
+          <Route
+            path="/cancel"
+            element={
+              <>
+                <h1>Payment Cancel</h1>
+                <button onClick={() => (window.location.href = "/")}>
+                  Move to Dashboard
+                </button>
+              </>
+            }
+          />
         </Routes>
       </Router>
     </>

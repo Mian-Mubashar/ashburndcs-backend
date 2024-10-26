@@ -1,5 +1,6 @@
 import AppRoutes from "Routes";
 import { Container } from "helpers/Alert";
+import emailjs from "@emailjs/browser";
 
 export default function App() {
   console.log("---------------------", window.localStorage.getItem("token"));
@@ -8,7 +9,6 @@ export default function App() {
     <>
       <AppRoutes />
       <Container />
-
     </>
   );
 }

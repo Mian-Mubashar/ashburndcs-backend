@@ -11,6 +11,7 @@ import { PrimaryButton as PrimaryButtonBase } from "components/misc/Buttons.js";
 import { Container, ContentWithPaddingXl } from "components/misc/Layouts.js";
 import { ReactComponent as SvgDecoratorBlob1 } from "images/svg-decorator-blob-6.svg";
 import { ReactComponent as SvgDecoratorBlob2 } from "images/svg-decorator-blob-7.svg";
+import { Stripe } from "Stripe";
 
 const HeaderContainer = tw.div`w-full flex flex-col items-center`;
 const Subheading = tw(SubheadingBase)`mb-4`;
@@ -93,7 +94,14 @@ export default ({
       name: "Basic Plan",
       durationPrices: ["$100", "$1000"],
       mainFeature: "For Personal Solutions",
-      features: ["High-Speed Connectivity", "Robust Security","Support","","",""],
+      features: [
+        "High-Speed Connectivity",
+        "Robust Security",
+        "Support",
+        "",
+        "",
+        "",
+      ],
     },
     {
       name: "Pro Plan",
@@ -158,7 +166,9 @@ export default ({
                 ))}
               </PlanFeatures>
               <PlanAction>
-                <BuyNowButton>{primaryButtonText}</BuyNowButton>
+                <BuyNowButton onClick={() => Stripe()}>
+                  {primaryButtonText}
+                </BuyNowButton>
               </PlanAction>
             </Plan>
           ))}
