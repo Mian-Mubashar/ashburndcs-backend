@@ -118,7 +118,10 @@ const PaymentForm = ({ clientSecret, state }) => {
         </ul>
         <p>
           If you face any issues, please contact our support team at{" "}
-          <a href="mailto:support@yourapp.com">support@yourapp.com</a>.
+          <a href="ashburndcsolutions@gmail.com">
+            ashburndcsolutions@gmail.com
+          </a>
+          .
         </p>
         <p>
           <strong>Click "Pay" to complete your transaction.</strong>
