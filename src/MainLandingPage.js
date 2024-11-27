@@ -57,13 +57,13 @@ export default () => {
         testimonials={TestimonialData.testimonials}
         imageRounded={TestimonialData.imageRounded}
       />
-      <Pricing
+      {/* <Pricing
         heading={
           <>
             Flexible <HighlightedText>Plans</HighlightedText>
           </>
         }
-      />
+      /> */}
       <FAQ
         heading={
           <>

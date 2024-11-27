@@ -105,7 +105,7 @@ export default ({
             <Heading>{heading}</Heading>
             <Description>{description}</Description>
             <TestimonialSlider arrows={false} ref={setSliderRef}>
-              {testimonials.map((testimonial, index) => (
+              {testimonials?.map((testimonial, index) => (
                 <Testimonial key={index}>
                   <StarsContainer>
                     {Array.from({ length: testimonial.stars }).map(

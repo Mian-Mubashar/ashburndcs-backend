@@ -76,6 +76,8 @@ export default ({
       <NavLink onClick={() => navigate("/e-learning")}>E-Learning</NavLink>
       <NavLink onClick={() => navigate("/about-us")}>About Us</NavLink>
       <NavLink onClick={() => navigate("/contact-us")}>Contact Us</NavLink>
+      <NavLink onClick={() => navigate("/buy-now")}>Buy Now</NavLink>
+
       {!Token ? (
         <>
           <NavLink onClick={() => navigate("/login")} tw="lg:ml-12!">
@@ -107,9 +109,8 @@ export default ({
     collapseBreakPointCssMap[collapseBreakpointClass];
 
   const defaultLogoLink = (
-    <LogoLink onClick={() => navigate("/")} >
-        <img src={logo} alt="logo" style={{width:"6.5rem"}}/>
- 
+    <LogoLink onClick={() => navigate("/")}>
+      <img src={logo} alt="logo" style={{ width: "6.5rem" }} />
     </LogoLink>
   );
 
@@ -170,8 +171,6 @@ const collapseBreakPointCssMap = {
     mobileNavLinksContainer: tw`lg:hidden`,
   },
 };
-
-
 
 // const defaultLogoLink = (
 //   <LogoLink onClick={() => navigate("/")}>

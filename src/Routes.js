@@ -31,7 +31,7 @@ export default function AppRoutes() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<MainLandingPage />} />
-          <Route path="/price" element={<PricingPage />} />
+          <Route path="/buy-now" element={<PricingPage />} />
           <Route path="/blog" element={<BlogIndexPage />} />
           <Route path="/register" element={<SignupPage />} />
           <Route path="/e-learning" element={<ELearning />} />

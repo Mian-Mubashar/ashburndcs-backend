@@ -4,18 +4,16 @@ import Pricing from "components/pricing/Pricing";
 import Header from "components/headers/light.js";
 import AnimationRevealPage from "helpers/AnimationRevealPage.js";
 import Footer from "components/footers/MiniCenteredFooter";
-import Testimonial from "components/testimonials/Testimonial";
+// import Testimonial from "components/testimonials/Testimonial";
 
 export default () => {
   return (
     <AnimationRevealPage>
       <Header />
       <Pricing />
-      <Testimonial
-        heading="Our Paying Customers"
-      />
-      <FAQ />
-      <Footer/>
+      {/* <Testimonial heading="Our Paying Customers" /> */}
+      {/* <FAQ /> */}
+      <Footer />
     </AnimationRevealPage>
   );
 };
