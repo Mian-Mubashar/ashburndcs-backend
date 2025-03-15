@@ -63,7 +63,7 @@ export const serviceData = [
     heading: "Website Development",
     subheading: "IT Service",
     description:
-      "Craft responsive and intuitive websites that align with your brand, ensuring seamless user experiences and effective communication of your message",
+      "All types of websites tailored to your needs using advanced technologies and frameworks. From dynamic WordPress sites to custom-built applications with MERN Stack (MongoDB, Express.js, React, Node.js) and MEAN Stack (MongoDB, Express.js, Angular, Node.js), our team delivers high-quality, scalable, and user-friendly solutions. Whether it's an e-commerce platform, portfolio, or enterprise application, we ensure seamless functionality and modern design.",
     primaryButtonText: "More Info",
     imageSrc: WD,
     textOnLeft: true,

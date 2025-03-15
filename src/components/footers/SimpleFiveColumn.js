@@ -44,7 +44,7 @@ export default () => {
             <LogoText>ADCS Inc.</LogoText>
           </LogoContainer>
           <CompanyDescription>
-          ADCS is an Internet Technology company 
+          Ashburn Data Center Solutions LLC
           </CompanyDescription>
           <SocialLinksContainer>
             <SocialLink href="https://facebook.com">

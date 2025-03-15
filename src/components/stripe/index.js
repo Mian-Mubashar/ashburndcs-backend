@@ -94,6 +94,7 @@ const PaymentForm = ({ clientSecret, state }) => {
 
   return (
     <>
+   
       <div class="intimation-note">
         <h2>Thank You for Choosing the {state.plan}!</h2>
         <p>

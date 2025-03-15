@@ -292,7 +292,7 @@ export default function AdminDashboard() {
               </Disclosure>
 
               <div className="lg:col-span-3">
-                {data.Elearn && <ElearnListing url={"http://localhost:4200/api/learning/view"}/>}
+                {data.Elearn && <ElearnListing url={"http://localhost:4200/api/learning/view"} />}
                 {data.Service && <ServiceListing />}
               </div>
             </div>

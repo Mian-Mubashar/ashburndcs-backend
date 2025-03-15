@@ -4,9 +4,6 @@ import styled from "styled-components";
 import { css } from "styled-components/macro"; //eslint-disable-line
 import Header from "../components/headers/light"
 
-
-
-
 const OpacityOverlay = tw.div`z-10 absolute inset-0 bg-black opacity-75`;
 
 const HeroContainer = tw.div`z-20 relative px-6 sm:px-8 mx-auto h-full flex flex-col`;

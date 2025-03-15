@@ -27,8 +27,8 @@ export default function AppRoutes() {
   return (
     <>
       <GlobalStyles />
-      <Router>
-        <Routes>
+      <Router tw="cursor-pointer">
+        <Routes  tw="cursor-pointer" >
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<MainLandingPage />} />
           <Route path="/buy-now" element={<PricingPage />} />
