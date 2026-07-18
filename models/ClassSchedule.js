@@ -1,17 +1,40 @@
-const mongoose = require("mongoose");
+"use strict";
 
-const classScheduleSchema = new mongoose.Schema(
-  {
-    course: { type: mongoose.Schema.Types.ObjectId, ref: "Course", required: true },
-    title: { type: String, required: true, trim: true },
-    date: { type: Date, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-    instructor: { type: String, required: true, trim: true },
-    meetingLink: { type: String, default: "" },
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  },
-  { timestamps: true }
-);
+const { withMongoId } = require("../utils/modelHelpers");
 
-module.exports = mongoose.model("ClassSchedule", classScheduleSchema);
+module.exports = (sequelize, DataTypes) => {
+  const ClassSchedule = sequelize.define(
+    "ClassSchedule",
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      courseId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+      },
+      title: { type: DataTypes.STRING(255), allowNull: false },
+      date: { type: DataTypes.DATEONLY, allowNull: false },
+      startTime: { type: DataTypes.STRING(50), allowNull: false },
+      endTime: { type: DataTypes.STRING(50), allowNull: false },
+      instructor: { type: DataTypes.STRING(191), allowNull: false },
+      meetingLink: { type: DataTypes.STRING(500), allowNull: false, defaultValue: "" },
+    },
+    { tableName: "class_schedules" }
+  );
+
+  ClassSchedule.associate = (models) => {
+    ClassSchedule.belongsTo(models.Course, { foreignKey: "courseId", as: "course" });
+    ClassSchedule.belongsToMany(models.User, {
+      through: models.ScheduleStudent,
+      foreignKey: "scheduleId",
+      otherKey: "userId",
+      as: "students",
+    });
+  };
+
+  withMongoId(ClassSchedule);
+  return ClassSchedule;
+};

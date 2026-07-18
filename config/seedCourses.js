@@ -1,41 +1,46 @@
-const Course = require("../models/Course");
+const { Op } = require("sequelize");
+const { Course } = require("../models");
 
-const defaultCourses = [
-  {
-    title: "Data Center Technician Fundamentals",
-    description: "Learn server hardware, cabling, rack installation, and data center operations from industry experts.",
-    duration: "8 Weeks",
-    level: "Beginner",
-    category: "Data Center",
-  },
-  {
-    title: "Network Infrastructure & Cabling",
-    description: "Master structured cabling, fiber optics, network troubleshooting, and documentation standards.",
-    duration: "6 Weeks",
-    level: "Intermediate",
-    category: "Networking",
-  },
-  {
-    title: "IT Support & Computer Repair",
-    description: "Hands-on training in PC/laptop repair, OS installation, virus removal, and customer support.",
-    duration: "10 Weeks",
-    level: "Beginner",
-    category: "IT Services",
-  },
-  {
-    title: "Cloud & Server Administration",
-    description: "Deploy, manage, and secure cloud servers. Covers Linux, Windows Server, and virtualization.",
-    duration: "12 Weeks",
-    level: "Advanced",
-    category: "Cloud",
-  },
+const DEFAULT_COURSE = {
+  title: "Data Center Server Training",
+  description:
+    "Hands-on training for data center servers — hardware, racking, cabling, troubleshooting, and day-to-day operations.",
+  duration: "8 Weeks",
+  level: "Beginner",
+  category: "Data Center",
+  isActive: true,
+};
+
+/** Old seeded courses — hide so only the default shows unless admin re-adds */
+const LEGACY_SEED_TITLES = [
+  "Data Center Technician Fundamentals",
+  "Network Infrastructure & Cabling",
+  "IT Support & Computer Repair",
+  "Cloud & Server Administration",
 ];
 
 const seedCourses = async () => {
-  const count = await Course.countDocuments();
-  if (count === 0) {
-    await Course.insertMany(defaultCourses);
-    console.log("Default courses seeded");
+  const existing = await Course.findOne({
+    where: { title: DEFAULT_COURSE.title },
+  });
+
+  if (!existing) {
+    await Course.create(DEFAULT_COURSE);
+    console.log("Default course seeded: Data Center Server Training");
+  }
+
+  const [updated] = await Course.update(
+    { isActive: false },
+    {
+      where: {
+        title: { [Op.in]: LEGACY_SEED_TITLES },
+        isActive: true,
+      },
+    }
+  );
+
+  if (updated > 0) {
+    console.log(`Deactivated ${updated} legacy default course(s)`);
   }
 };
 

@@ -1,14 +1,25 @@
-const mongoose = require("mongoose");
+"use strict";
 
-const contactSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true, lowercase: true },
-    phone: { type: String, required: true, trim: true },
-    subject: { type: String, required: true, trim: true },
-    message: { type: String, required: true, trim: true },
-  },
-  { timestamps: true }
-);
+const { withMongoId } = require("../utils/modelHelpers");
 
-module.exports = mongoose.model("Contact", contactSchema);
+module.exports = (sequelize, DataTypes) => {
+  const Contact = sequelize.define(
+    "Contact",
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: { type: DataTypes.STRING(191), allowNull: false },
+      email: { type: DataTypes.STRING(191), allowNull: false },
+      phone: { type: DataTypes.STRING(50), allowNull: false },
+      subject: { type: DataTypes.STRING(255), allowNull: false },
+      message: { type: DataTypes.TEXT, allowNull: false },
+    },
+    { tableName: "contacts" }
+  );
+
+  withMongoId(Contact);
+  return Contact;
+};

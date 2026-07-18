@@ -57,9 +57,9 @@ const sendAdminEnrollmentNotification = async (payload) => {
   return formatResult(result, "Admin notified.");
 };
 
-const sendEnrollmentApprovedEmail = async (email, fullName, courseTitle, token) => {
+const sendEnrollmentApprovedEmail = async (email, fullName, courseTitle) => {
   console.log(`[Email] Sending approval email → ${email} | course: ${courseTitle}`);
-  const { subject, html } = enrollmentApprovedEmail({ fullName, courseTitle, token });
+  const { subject, html } = enrollmentApprovedEmail({ fullName, courseTitle });
   const result = await sendMail({ to: email, subject, html });
   if (result.ok) {
     console.log(`[Email] ✓ Approval email delivered to ${email}`);

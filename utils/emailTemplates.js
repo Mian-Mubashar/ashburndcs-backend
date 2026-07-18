@@ -49,9 +49,6 @@ const actionButton = (url, label) => `
       ${label}
     </a>
   </p>
-  <p style="color:#9ca3af;font-size:13px;word-break:break-all;">
-    Or copy this link:<br><a href="${url}" style="color:${brandColor};">${url}</a>
-  </p>
 `;
 
 const verificationEmail = (token) => {
@@ -111,18 +108,18 @@ const enrollmentReceivedEmail = ({ fullName, courseTitle }) => ({
   ),
 });
 
-const enrollmentApprovedEmail = ({ fullName, courseTitle, token }) => {
-  const url = `${getFrontendUrl()}/complete-enrollment?token=${token}`;
+const enrollmentApprovedEmail = ({ fullName, courseTitle }) => {
+  const url = `${getFrontendUrl()}/dashboard`;
   return {
-    subject: "Enrollment Approved — Complete Your Registration",
+    subject: "Enrollment Approved — You're Enrolled!",
     html: baseTemplate(
       "Enrollment Approved",
       `
         <h2 style="margin:0 0 12px;color:#111827;">Congratulations ${fullName}!</h2>
-        <p>Your enrollment for <strong>${courseTitle}</strong> has been approved.</p>
-        <p>Click below to create your password and access your student dashboard.</p>
-        ${actionButton(url, "Complete Registration")}
-        <p style="color:#9ca3af;font-size:13px;">This link expires in 7 days.</p>
+        <p>Your enrollment for <strong>${courseTitle}</strong> has been <strong>approved</strong>.</p>
+        <p>You are fully enrolled — no extra registration step needed.</p>
+        <p>Sign in with your account to open your student dashboard.</p>
+        ${actionButton(url, "Go to Dashboard")}
       `
     ),
   };

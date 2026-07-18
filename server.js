@@ -26,7 +26,7 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const warnMissingEnv = () => {
-  const required = ["JWT_SECRET", "MONGODB_URI"];
+  const required = ["JWT_SECRET", "DB_NAME", "DB_USER"];
   const recommended = ["SMTP_USER", "SMTP_PASS", "STRIPE_SECRET_KEY"];
 
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
