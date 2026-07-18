@@ -1,5 +1,5 @@
 const express = require("express");
-const CareerApplication = require("../models/CareerApplication");
+const { CareerApplication } = require("../models");
 const { sendMail } = require("../utils/mailer");
 
 const router = express.Router();

@@ -1,14 +1,36 @@
-const mongoose = require("mongoose");
+"use strict";
 
-const notificationSchema = new mongoose.Schema(
-  {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    title: { type: String, required: true },
-    message: { type: String, required: true },
-    type: { type: String, enum: ["schedule", "enrollment", "general"], default: "general" },
-    read: { type: Boolean, default: false },
-  },
-  { timestamps: true }
-);
+const { withMongoId } = require("../utils/modelHelpers");
 
-module.exports = mongoose.model("Notification", notificationSchema);
+module.exports = (sequelize, DataTypes) => {
+  const Notification = sequelize.define(
+    "Notification",
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      userId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+      },
+      title: { type: DataTypes.STRING(255), allowNull: false },
+      message: { type: DataTypes.TEXT, allowNull: false },
+      type: {
+        type: DataTypes.ENUM("schedule", "enrollment", "general"),
+        allowNull: false,
+        defaultValue: "general",
+      },
+      read: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    },
+    { tableName: "notifications" }
+  );
+
+  Notification.associate = (models) => {
+    Notification.belongsTo(models.User, { foreignKey: "userId", as: "user" });
+  };
+
+  withMongoId(Notification);
+  return Notification;
+};

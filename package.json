@@ -1,11 +1,16 @@
 {
-  "name": "ashburn-backend",
+  "name": "ashburndcs-backend",
   "version": "1.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "db:migrate": "npx sequelize-cli db:migrate",
+    "db:migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "db:seed": "npx sequelize-cli db:seed:all",
+    "db:seed:undo": "npx sequelize-cli db:seed:undo:all",
+    "db:reset": "npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -13,9 +18,13 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.3",
     "multer": "^2.2.0",
+    "mysql2": "^3.14.0",
     "nodemailer": "^6.9.16",
+    "sequelize": "^6.37.7",
     "stripe": "^17.5.0"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.3"
   }
 }

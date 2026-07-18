@@ -1,32 +1,119 @@
-const Course = require("../models/Course");
-const Enrollment = require("../models/Enrollment");
-const ClassSchedule = require("../models/ClassSchedule");
-const CourseMaterial = require("../models/CourseMaterial");
-const Notification = require("../models/Notification");
-const User = require("../models/User");
-const mongoose = require("mongoose");
+const { Op } = require("sequelize");
 const path = require("path");
+const {
+  Course,
+  Enrollment,
+  ClassSchedule,
+  CourseMaterial,
+  Notification,
+  User,
+} = require("../models");
 const { sendMail } = require("../utils/mailer");
 const { getFrontendUrl, hashToken } = require("../utils/authHelpers");
 const { scheduleUpdatedEmail } = require("../utils/emailTemplates");
-const { sendEnrollmentReceivedEmail, sendEnrollmentApprovedEmail, sendAdminEnrollmentNotification } = require("../utils/sendAuthEmail");
+const {
+  sendEnrollmentReceivedEmail,
+  sendEnrollmentApprovedEmail,
+  sendAdminEnrollmentNotification,
+} = require("../utils/sendAuthEmail");
+
+const courseAttrs = ["id", "title", "category", "description", "duration", "level", "isActive"];
+
+/** Link course + schedules to user and mark enrollment completed (no password step). */
+const finalizeEnrollmentForUser = async (enrollment, user) => {
+  if (!enrollment.course && enrollment.courseId) {
+    await enrollment.reload({ include: [{ model: Course, as: "course" }] });
+  }
+
+  await user.addEnrolledCourse(enrollment.courseId);
+
+  const schedules = await ClassSchedule.findAll({
+    where: { courseId: enrollment.courseId },
+  });
+  for (const schedule of schedules) {
+    await schedule.addStudent(user.id);
+  }
+
+  enrollment.status = "completed";
+  enrollment.userId = user.id;
+  if (typeof enrollment.clearRegistrationToken === "function") {
+    enrollment.clearRegistrationToken();
+  }
+  await enrollment.save();
+
+  const courseTitle = enrollment.course?.title || "your course";
+  await Notification.create({
+    userId: user.id,
+    title: "Enrollment approved",
+    message: `You are fully enrolled in ${courseTitle}. Check your dashboard for schedules and materials.`,
+    type: "enrollment",
+  });
+
+  return enrollment;
+};
+
+/** After signup / login / verify — attach any approved/completed enrollments for this email. */
+const linkEnrollmentsForUser = async (user) => {
+  if (!user?.id || !user?.email) return;
+
+  const enrollments = await Enrollment.findAll({
+    where: {
+      email: user.email.toLowerCase(),
+      status: { [Op.in]: ["approved", "completed"] },
+      [Op.or]: [{ userId: null }, { userId: user.id }],
+    },
+    include: [{ model: Course, as: "course" }],
+  });
+
+  for (const enrollment of enrollments) {
+    const alreadyLinked =
+      enrollment.userId === user.id && enrollment.status === "completed";
+    if (alreadyLinked) {
+      // Ensure course association exists
+      await user.addEnrolledCourse(enrollment.courseId);
+      continue;
+    }
+    await finalizeEnrollmentForUser(enrollment, user);
+  }
+};
 
 const getPublicSchedules = async () => {
-  const schedules = await ClassSchedule.find()
-    .populate("course", "title category description duration level isActive")
-    .sort({ date: 1 });
+  const schedules = await ClassSchedule.findAll({
+    include: [{ model: Course, as: "course", attributes: courseAttrs }],
+    order: [["date", "ASC"]],
+  });
 
   return {
     status: 200,
     body: {
       success: true,
-      schedules: schedules.filter((s) => s.course && s.course.isActive !== false),
+      schedules: schedules
+        .filter((s) => s.course && s.course.isActive !== false)
+        .map((s) => {
+          const json = s.toJSON();
+          if (json.course) {
+            json.course._id = json.course._id || json.course.id;
+            json.course.id = json.course.id || json.course._id;
+          }
+          json._id = json._id || json.id;
+          return json;
+        }),
     },
   };
 };
 
 const getCourses = async () => {
-  const courses = await Course.find({ isActive: true }).sort({ createdAt: -1 });
+  const courses = await Course.findAll({
+    where: { isActive: true },
+    order: [["createdAt", "DESC"]],
+  });
+  return { status: 200, body: { success: true, courses } };
+};
+
+const getAllCourses = async () => {
+  const courses = await Course.findAll({
+    order: [["createdAt", "DESC"]],
+  });
   return { status: 200, body: { success: true, courses } };
 };
 
@@ -37,16 +124,26 @@ const submitEnrollment = async (data) => {
     return { status: 400, body: { error: "All required fields must be filled" } };
   }
 
-  const course = await Course.findById(courseId);
+  const course = await Course.findByPk(courseId);
   if (!course) return { status: 404, body: { error: "Course not found" } };
 
   const existing = await Enrollment.findOne({
-    email: email.toLowerCase(),
-    course: courseId,
-    status: { $in: ["pending", "approved"] },
+    where: {
+      email: email.toLowerCase(),
+      courseId,
+      status: { [Op.in]: ["pending", "approved", "completed"] },
+    },
   });
   if (existing) {
-    return { status: 409, body: { error: "You already have a pending or approved enrollment for this course" } };
+    return {
+      status: 409,
+      body: {
+        error:
+          existing.status === "completed"
+            ? "You are already enrolled in this course"
+            : "You already have a pending or approved enrollment for this course",
+      },
+    };
   }
 
   const enrollment = await Enrollment.create({
@@ -54,7 +151,7 @@ const submitEnrollment = async (data) => {
     email: email.toLowerCase(),
     phone,
     education,
-    course: courseId,
+    courseId,
     message: message || "",
     status: "pending",
   });
@@ -76,7 +173,7 @@ const submitEnrollment = async (data) => {
       emailSent: emailResult.ok,
       status: "pending",
       message: "You are enrolled! Your application is Pending admin approval.",
-      enrollmentId: enrollment._id,
+      enrollmentId: enrollment.id,
       courseTitle: course.title,
       fullName: enrollment.fullName,
       email: enrollment.email,
@@ -89,17 +186,20 @@ const getEnrollmentsByEmail = async (email) => {
     return { status: 400, body: { error: "Email is required" } };
   }
 
-  const enrollments = await Enrollment.find({ email: email.toLowerCase() })
-    .populate("course", "title")
-    .sort({ createdAt: -1 });
+  const enrollments = await Enrollment.findAll({
+    where: { email: email.toLowerCase() },
+    include: [{ model: Course, as: "course", attributes: ["id", "title"] }],
+    order: [["createdAt", "DESC"]],
+  });
 
   return {
     status: 200,
     body: {
       success: true,
       enrollments: enrollments.map((e) => ({
-        id: e._id,
+        id: e.id,
         status: e.status,
+        courseId: e.courseId,
         courseTitle: e.course?.title,
         fullName: e.fullName,
         email: e.email,
@@ -115,19 +215,29 @@ const requestRegistrationLink = async ({ email, enrollmentId }) => {
     return { status: 400, body: { error: "Email is required" } };
   }
 
-  const query = { email: email.toLowerCase() };
-
+  const emailWhere = { email: email.toLowerCase() };
   let enrollment;
+
   if (enrollmentId) {
-    enrollment = await Enrollment.findOne({ _id: enrollmentId, ...query }).populate("course");
+    enrollment = await Enrollment.findOne({
+      where: { id: enrollmentId, ...emailWhere },
+      include: [{ model: Course, as: "course" }],
+    });
   } else {
-    enrollment = await Enrollment.findOne({ ...query, status: "approved" })
-      .populate("course")
-      .sort({ createdAt: -1 });
+    enrollment = await Enrollment.findOne({
+      where: { ...emailWhere, status: "approved" },
+      include: [{ model: Course, as: "course" }],
+      order: [["createdAt", "DESC"]],
+    });
     if (!enrollment) {
-      enrollment = await Enrollment.findOne(query).populate("course").sort({ createdAt: -1 });
+      enrollment = await Enrollment.findOne({
+        where: emailWhere,
+        include: [{ model: Course, as: "course" }],
+        order: [["createdAt", "DESC"]],
+      });
     }
   }
+
   if (!enrollment) {
     return { status: 404, body: { error: "No enrollment found for this email" } };
   }
@@ -142,7 +252,11 @@ const requestRegistrationLink = async ({ email, enrollmentId }) => {
   if (enrollment.status === "completed") {
     return {
       status: 200,
-      body: { success: true, status: "completed", message: "Already registered! You can log in and go to your dashboard." },
+      body: {
+        success: true,
+        status: "completed",
+        message: "You are fully enrolled! Sign in and open your Student Dashboard.",
+      },
     };
   }
 
@@ -150,31 +264,40 @@ const requestRegistrationLink = async ({ email, enrollmentId }) => {
     return { status: 400, body: { error: "Enrollment was not approved.", status: "rejected" } };
   }
 
-  const rawToken = enrollment.createRegistrationToken();
-  await enrollment.save();
+  // Legacy approved (old password step) — finalize now if account exists
+  if (enrollment.status === "approved") {
+    const user = await User.findOne({ where: { email: enrollment.email } });
+    if (user) {
+      await finalizeEnrollmentForUser(enrollment, user);
+      return {
+        status: 200,
+        body: {
+          success: true,
+          status: "completed",
+          message: "You are fully enrolled! Sign in and open your Student Dashboard.",
+        },
+      };
+    }
+    enrollment.status = "completed";
+    enrollment.clearRegistrationToken();
+    await enrollment.save();
+    return {
+      status: 200,
+      body: {
+        success: true,
+        status: "completed",
+        message: "You are enrolled! Sign up or sign in with this email to access your dashboard.",
+      },
+    };
+  }
 
-  const mail = await sendEnrollmentApprovedEmail(
-    enrollment.email,
-    enrollment.fullName,
-    enrollment.course.title,
-    rawToken
-  );
-
-  return {
-    status: 200,
-    body: {
-      success: true,
-      status: "approved",
-      emailSent: mail.ok,
-      message: mail.ok
-        ? `Registration link sent to ${enrollment.email}. Check inbox and spam folder.`
-        : `Could not send email. Contact admin or try again later.`,
-    },
-  };
+  return { status: 400, body: { error: "Unable to process enrollment status." } };
 };
 
 const getEnrollmentStatus = async (enrollmentId) => {
-  const enrollment = await Enrollment.findById(enrollmentId).populate("course", "title");
+  const enrollment = await Enrollment.findByPk(enrollmentId, {
+    include: [{ model: Course, as: "course", attributes: ["id", "title"] }],
+  });
   if (!enrollment) {
     return { status: 404, body: { error: "Enrollment not found" } };
   }
@@ -184,7 +307,7 @@ const getEnrollmentStatus = async (enrollmentId) => {
     body: {
       success: true,
       enrollment: {
-        id: enrollment._id,
+        id: enrollment.id,
         status: enrollment.status,
         courseTitle: enrollment.course?.title,
         fullName: enrollment.fullName,
@@ -205,19 +328,24 @@ const completeRegistration = async ({ token, password }) => {
   }
 
   const enrollment = await Enrollment.findOne({
-    registrationToken: hashToken(token),
-    registrationExpires: { $gt: Date.now() },
-    status: "approved",
-  }).populate("course");
+    where: {
+      registrationToken: hashToken(token),
+      registrationExpires: { [Op.gt]: new Date() },
+      status: "approved",
+    },
+    include: [{ model: Course, as: "course" }],
+  });
 
   if (!enrollment) {
     return { status: 400, body: { error: "Invalid or expired registration link" } };
   }
 
-  let user = await User.findOne({ email: enrollment.email }).select("+password");
+  let user = await User.scope("withPassword").findOne({
+    where: { email: enrollment.email },
+  });
 
   if (!user) {
-    user = new User({
+    user = await User.create({
       email: enrollment.email,
       name: enrollment.fullName,
       password,
@@ -230,29 +358,25 @@ const completeRegistration = async ({ token, password }) => {
     if (!user.name && enrollment.fullName) {
       user.name = enrollment.fullName;
     }
+    await user.save();
   }
 
-  if (!user.enrolledCourses?.some((id) => id.equals(enrollment.course._id))) {
-    user.enrolledCourses = user.enrolledCourses || [];
-    user.enrolledCourses.push(enrollment.course._id);
-  }
-  await user.save();
+  await user.addEnrolledCourse(enrollment.courseId);
 
   enrollment.status = "completed";
-  enrollment.user = user._id;
+  enrollment.userId = user.id;
   enrollment.clearRegistrationToken();
   await enrollment.save();
 
-  const schedules = await ClassSchedule.find({ course: enrollment.course._id });
+  const schedules = await ClassSchedule.findAll({
+    where: { courseId: enrollment.courseId },
+  });
   for (const schedule of schedules) {
-    if (!schedule.students.includes(user._id)) {
-      schedule.students.push(user._id);
-      await schedule.save();
-    }
+    await schedule.addStudent(user.id);
   }
 
   await Notification.create({
-    user: user._id,
+    userId: user.id,
     title: "Welcome to ADCS!",
     message: `You are now enrolled in ${enrollment.course.title}. Check your dashboard for schedules and materials.`,
     type: "enrollment",
@@ -260,7 +384,7 @@ const completeRegistration = async ({ token, password }) => {
 
   const jwt = require("jsonwebtoken");
   const authToken = jwt.sign(
-    { id: user._id, email: user.email, role: user.role },
+    { id: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
@@ -271,117 +395,154 @@ const completeRegistration = async ({ token, password }) => {
       success: true,
       message: "Registration complete! You are now enrolled.",
       token: authToken,
-      user: { id: user._id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, _id: user.id, email: user.email, name: user.name, role: user.role },
     },
   };
 };
 
 const getStudentDashboard = async (userId) => {
-  const user = await User.findById(userId).populate("enrolledCourses");
+  const user = await User.findByPk(userId, {
+    include: [{ model: Course, as: "enrolledCourses" }],
+  });
 
   if (!user.name) {
-    const enrollment = await Enrollment.findOne({ email: user.email })
-      .sort({ createdAt: -1 })
-      .select("fullName");
+    const enrollment = await Enrollment.findOne({
+      where: { email: user.email },
+      order: [["createdAt", "DESC"]],
+      attributes: ["fullName"],
+    });
     if (enrollment?.fullName) {
       user.name = enrollment.fullName;
       await user.save();
     }
   }
 
-  const schedules = await ClassSchedule.find({
-    $or: [{ students: userId }, { course: { $in: user.enrolledCourses.map((c) => c._id) } }],
-  })
-    .populate("course", "title")
-    .sort({ date: 1 });
+  const enrolledCourseIds = (user.enrolledCourses || []).map((c) => c.id);
 
-  const notifications = await Notification.find({ user: userId })
-    .sort({ createdAt: -1 })
-    .limit(20);
+  const schedules = await ClassSchedule.findAll({
+    include: [
+      { model: Course, as: "course", attributes: ["id", "title"] },
+      {
+        model: User,
+        as: "students",
+        attributes: ["id"],
+        through: { attributes: [] },
+        required: false,
+      },
+    ],
+    order: [["date", "ASC"]],
+  });
 
-  const studentEnrollments = await Enrollment.find({
-    $or: [{ user: userId }, { email: user.email }],
-    status: "completed",
-  }).select("course");
-
-  const courseIds = [
-    ...user.enrolledCourses.map((c) => c._id),
-    ...studentEnrollments.map((e) => e.course),
-  ].filter(Boolean);
-
-  const uniqueCourseIds = [...new Set(courseIds.map((id) => String(id)))].map(
-    (id) => new mongoose.Types.ObjectId(id)
+  const filteredSchedules = schedules.filter(
+    (s) =>
+      (s.students || []).some((st) => st.id === Number(userId)) ||
+      enrolledCourseIds.includes(s.courseId)
   );
 
-  if (studentEnrollments.length && user.enrolledCourses.length < uniqueCourseIds.length) {
-    user.enrolledCourses = uniqueCourseIds;
-    await user.save();
+  const notifications = await Notification.findAll({
+    where: { userId },
+    order: [["createdAt", "DESC"]],
+    limit: 20,
+  });
+
+  const studentEnrollments = await Enrollment.findAll({
+    where: {
+      [Op.or]: [{ userId }, { email: user.email }],
+      status: "completed",
+    },
+    attributes: ["courseId"],
+  });
+
+  const courseIds = [
+    ...enrolledCourseIds,
+    ...studentEnrollments.map((e) => e.courseId),
+  ].filter(Boolean);
+
+  const uniqueCourseIds = [...new Set(courseIds.map(Number))];
+
+  if (studentEnrollments.length && enrolledCourseIds.length < uniqueCourseIds.length) {
+    await user.setEnrolledCourses(uniqueCourseIds);
   }
 
   const materials = uniqueCourseIds.length
-    ? await CourseMaterial.find({ course: { $in: uniqueCourseIds } })
-        .populate("course", "title")
-        .sort({ order: 1, createdAt: -1 })
+    ? await CourseMaterial.findAll({
+        where: { courseId: { [Op.in]: uniqueCourseIds } },
+        include: [{ model: Course, as: "course", attributes: ["id", "title"] }],
+        order: [
+          ["order", "ASC"],
+          ["createdAt", "DESC"],
+        ],
+      })
     : [];
 
-  const applications = await Enrollment.find({ email: user.email })
-    .populate("course", "title")
-    .sort({ createdAt: -1 });
+  const applications = await Enrollment.findAll({
+    where: { email: user.email },
+    include: [{ model: Course, as: "course", attributes: ["id", "title"] }],
+    order: [["createdAt", "DESC"]],
+  });
+
+  const refreshedUser = await User.findByPk(userId, {
+    include: [{ model: Course, as: "enrolledCourses" }],
+  });
 
   return {
     status: 200,
     body: {
       success: true,
-      user: { name: user.name, email: user.email },
-      courses: user.enrolledCourses,
+      user: { name: refreshedUser.name, email: refreshedUser.email },
+      courses: refreshedUser.enrolledCourses,
       applications,
-      schedules,
+      schedules: filteredSchedules,
       materials,
       notifications,
     },
   };
 };
 
-// Admin services
 const getAllEnrollments = async () => {
-  const enrollments = await Enrollment.find()
-    .populate("course", "title")
-    .populate("user", "name email")
-    .sort({ createdAt: -1 });
+  const enrollments = await Enrollment.findAll({
+    include: [
+      { model: Course, as: "course", attributes: ["id", "title"] },
+      { model: User, as: "user", attributes: ["id", "name", "email"] },
+    ],
+    order: [["createdAt", "DESC"]],
+  });
   return { status: 200, body: { success: true, enrollments } };
 };
 
 const approveEnrollment = async (enrollmentId) => {
-  const enrollment = await Enrollment.findById(enrollmentId).populate("course");
+  const enrollment = await Enrollment.findByPk(enrollmentId, {
+    include: [{ model: Course, as: "course" }],
+  });
   if (!enrollment) return { status: 404, body: { error: "Enrollment not found" } };
   if (enrollment.status !== "pending") {
     return { status: 400, body: { error: "Enrollment is not pending" } };
   }
 
-  const rawToken = enrollment.createRegistrationToken();
-  enrollment.status = "approved";
-  await enrollment.save();
+  const user = await User.findOne({ where: { email: enrollment.email } });
 
-  const registrationLink = `${getFrontendUrl()}/complete-enrollment?token=${rawToken}`;
+  if (user) {
+    await finalizeEnrollmentForUser(enrollment, user);
+  } else {
+    // No account yet — mark enrolled; link when they sign up / verify with same email
+    enrollment.status = "completed";
+    enrollment.clearRegistrationToken();
+    await enrollment.save();
+  }
 
-  console.log("[Enrollment] APPROVE", {
+  console.log("[Enrollment] APPROVE → completed", {
     id: enrollmentId,
     student: enrollment.email,
     name: enrollment.fullName,
     course: enrollment.course?.title,
+    linkedUser: Boolean(user),
   });
 
   const mail = await sendEnrollmentApprovedEmail(
     enrollment.email,
     enrollment.fullName,
-    enrollment.course.title,
-    rawToken
+    enrollment.course.title
   );
-
-  if (!mail.ok) {
-    console.error("[Enrollment] ✗ Student did NOT receive email. SMTP required.");
-    console.error("[Enrollment]   Manual link for student:", registrationLink);
-  }
 
   return {
     status: 200,
@@ -389,30 +550,39 @@ const approveEnrollment = async (enrollmentId) => {
       success: true,
       emailSent: mail.ok,
       studentEmail: enrollment.email,
-      registrationLink: mail.ok ? null : registrationLink,
+      status: "completed",
       message: mail.ok
-        ? `Approved! Email sent to ${enrollment.email}`
-        : `Approved but email could not be sent (${mail.message}). Copy the registration link below and send it to the student manually.`,
+        ? `Approved & enrolled! Email sent to ${enrollment.email}`
+        : `Approved & enrolled, but email could not be sent (${mail.message}).`,
     },
   };
 };
 
 const resendApprovalEmail = async (enrollmentId) => {
-  const enrollment = await Enrollment.findById(enrollmentId).populate("course");
+  const enrollment = await Enrollment.findByPk(enrollmentId, {
+    include: [{ model: Course, as: "course" }],
+  });
   if (!enrollment) return { status: 404, body: { error: "Enrollment not found" } };
-  if (enrollment.status !== "approved") {
+  if (!["approved", "completed"].includes(enrollment.status)) {
     return { status: 400, body: { error: "Enrollment must be approved first" } };
   }
 
-  const rawToken = enrollment.createRegistrationToken();
-  await enrollment.save();
+  // Legacy "approved" waiting for password → finish enrollment now
+  if (enrollment.status === "approved") {
+    const user = await User.findOne({ where: { email: enrollment.email } });
+    if (user) {
+      await finalizeEnrollmentForUser(enrollment, user);
+    } else {
+      enrollment.status = "completed";
+      enrollment.clearRegistrationToken();
+      await enrollment.save();
+    }
+  }
 
-  const registrationLink = `${getFrontendUrl()}/complete-enrollment?token=${rawToken}`;
   const mail = await sendEnrollmentApprovedEmail(
     enrollment.email,
     enrollment.fullName,
-    enrollment.course.title,
-    rawToken
+    enrollment.course.title
   );
 
   return {
@@ -420,7 +590,6 @@ const resendApprovalEmail = async (enrollmentId) => {
     body: {
       success: true,
       emailSent: mail.ok,
-      registrationLink: mail.ok ? null : registrationLink,
       message: mail.ok
         ? `Email resent to ${enrollment.email}`
         : `Email failed: ${mail.message}`,
@@ -429,7 +598,7 @@ const resendApprovalEmail = async (enrollmentId) => {
 };
 
 const rejectEnrollment = async (enrollmentId, adminNote = "") => {
-  const enrollment = await Enrollment.findById(enrollmentId);
+  const enrollment = await Enrollment.findByPk(enrollmentId);
   if (!enrollment) return { status: 404, body: { error: "Enrollment not found" } };
 
   enrollment.status = "rejected";
@@ -445,13 +614,14 @@ const createCourse = async (data) => {
 };
 
 const updateCourse = async (id, data) => {
-  const course = await Course.findByIdAndUpdate(id, data, { new: true });
+  const course = await Course.findByPk(id);
   if (!course) return { status: 404, body: { error: "Course not found" } };
+  await course.update(data);
   return { status: 200, body: { success: true, course } };
 };
 
 const deleteCourse = async (id) => {
-  await Course.findByIdAndDelete(id);
+  await Course.destroy({ where: { id } });
   return { status: 200, body: { success: true, message: "Course deleted" } };
 };
 
@@ -462,14 +632,26 @@ const getWeeklyDatesForRestOfMonth = (dateInput) => {
 
   let current = new Date(start);
   while (current <= endOfMonth) {
-    dates.push(new Date(current));
+    dates.push(current.toISOString().slice(0, 10));
     current.setDate(current.getDate() + 7);
   }
   return dates;
 };
 
+const normalizeSchedulePayload = (data) => {
+  const payload = { ...data };
+  if (payload.course && !payload.courseId) {
+    payload.courseId = payload.course;
+  }
+  delete payload.course;
+  delete payload.repeatWeekly;
+  delete payload.students;
+  return payload;
+};
+
 const createSchedule = async (data) => {
-  const { repeatWeekly, ...scheduleData } = data;
+  const { repeatWeekly } = data;
+  const scheduleData = normalizeSchedulePayload(data);
 
   if (!repeatWeekly) {
     const schedule = await ClassSchedule.create(scheduleData);
@@ -477,7 +659,7 @@ const createSchedule = async (data) => {
   }
 
   const dates = getWeeklyDatesForRestOfMonth(scheduleData.date);
-  const schedules = await ClassSchedule.insertMany(
+  const schedules = await ClassSchedule.bulkCreate(
     dates.map((date) => ({ ...scheduleData, date }))
   );
 
@@ -493,16 +675,27 @@ const createSchedule = async (data) => {
 };
 
 const updateSchedule = async (id, data) => {
-  const schedule = await ClassSchedule.findByIdAndUpdate(id, data, { new: true }).populate("course");
+  const schedule = await ClassSchedule.findByPk(id);
   if (!schedule) return { status: 404, body: { error: "Schedule not found" } };
 
-  const students = await User.find({
-    enrolledCourses: schedule.course._id,
+  await schedule.update(normalizeSchedulePayload(data));
+  await schedule.reload({ include: [{ model: Course, as: "course" }] });
+
+  const students = await User.findAll({
+    include: [
+      {
+        model: Course,
+        as: "enrolledCourses",
+        where: { id: schedule.courseId },
+        through: { attributes: [] },
+        required: true,
+      },
+    ],
   });
 
   for (const student of students) {
     await Notification.create({
-      user: student._id,
+      userId: student.id,
       title: "Schedule Updated",
       message: `${schedule.title} has been rescheduled.`,
       type: "schedule",
@@ -520,30 +713,16 @@ const updateSchedule = async (id, data) => {
 };
 
 const deleteSchedule = async (id) => {
-  await ClassSchedule.findByIdAndDelete(id);
+  await ClassSchedule.destroy({ where: { id } });
   return { status: 200, body: { success: true, message: "Schedule deleted" } };
 };
 
 const getAllSchedules = async () => {
-  const schedules = await ClassSchedule.find()
-    .populate("course", "title")
-    .sort({ createdAt: 1 });
+  const schedules = await ClassSchedule.findAll({
+    include: [{ model: Course, as: "course", attributes: ["id", "title"] }],
+    order: [["createdAt", "ASC"]],
+  });
   return { status: 200, body: { success: true, schedules } };
-};
-
-const createMaterial = async (data, file) => {
-  const validationError = validateMaterialPayload(data, file);
-  if (validationError) return { status: 400, body: { error: validationError } };
-
-  const payload = { ...data };
-  if (file) {
-    payload.fileUrl = `/uploads/materials/${file.filename}`;
-    payload.fileName = file.originalname;
-  }
-  if (payload.type === "document") payload.url = "";
-
-  const material = await CourseMaterial.create(payload);
-  return { status: 201, body: { success: true, material } };
 };
 
 const validateMaterialPayload = (data, file, existing = null) => {
@@ -567,21 +746,46 @@ const removeMaterialFile = (fileUrl) => {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 };
 
+const normalizeMaterialPayload = (data) => {
+  const payload = { ...data };
+  if (payload.course && !payload.courseId) {
+    payload.courseId = payload.course;
+  }
+  delete payload.course;
+  return payload;
+};
+
+const createMaterial = async (data, file) => {
+  const validationError = validateMaterialPayload(data, file);
+  if (validationError) return { status: 400, body: { error: validationError } };
+
+  const payload = normalizeMaterialPayload(data);
+  if (file) {
+    payload.fileUrl = `/uploads/materials/${file.filename}`;
+    payload.fileName = file.originalname;
+  }
+  if (payload.type === "document") payload.url = "";
+
+  const material = await CourseMaterial.create(payload);
+  return { status: 201, body: { success: true, material } };
+};
+
 const getAllMaterials = async () => {
-  const materials = await CourseMaterial.find()
-    .populate("course", "title")
-    .sort({ createdAt: -1 });
+  const materials = await CourseMaterial.findAll({
+    include: [{ model: Course, as: "course", attributes: ["id", "title"] }],
+    order: [["createdAt", "DESC"]],
+  });
   return { status: 200, body: { success: true, materials } };
 };
 
 const updateMaterial = async (id, data, file) => {
-  const existing = await CourseMaterial.findById(id);
+  const existing = await CourseMaterial.findByPk(id);
   if (!existing) return { status: 404, body: { error: "Material not found" } };
 
   const validationError = validateMaterialPayload(data, file, existing);
   if (validationError) return { status: 400, body: { error: validationError } };
 
-  const payload = { ...data };
+  const payload = normalizeMaterialPayload(data);
   if (file) {
     removeMaterialFile(existing.fileUrl);
     payload.fileUrl = `/uploads/materials/${file.filename}`;
@@ -594,39 +798,44 @@ const updateMaterial = async (id, data, file) => {
     payload.fileName = "";
   }
 
-  const material = await CourseMaterial.findByIdAndUpdate(id, payload, { new: true }).populate(
-    "course",
-    "title"
-  );
-  return { status: 200, body: { success: true, material } };
+  await existing.update(payload);
+  await existing.reload({
+    include: [{ model: Course, as: "course", attributes: ["id", "title"] }],
+  });
+  return { status: 200, body: { success: true, material: existing } };
 };
 
 const deleteMaterial = async (id) => {
-  const material = await CourseMaterial.findById(id);
+  const material = await CourseMaterial.findByPk(id);
   if (material?.fileUrl) removeMaterialFile(material.fileUrl);
-  await CourseMaterial.findByIdAndDelete(id);
+  await CourseMaterial.destroy({ where: { id } });
   return { status: 200, body: { success: true, message: "Material deleted" } };
 };
 
 const getAdminStats = async () => {
   const [courses, enrollments, pending, schedules, students] = await Promise.all([
-    Course.countDocuments(),
-    Enrollment.countDocuments(),
-    Enrollment.countDocuments({ status: "pending" }),
-    ClassSchedule.countDocuments(),
-    User.countDocuments({ role: "student" }),
+    Course.count({ where: { isActive: true } }),
+    Enrollment.count(),
+    Enrollment.count({ where: { status: "pending" } }),
+    ClassSchedule.count(),
+    User.count({ where: { role: "student" } }),
   ]);
-  return { status: 200, body: { success: true, stats: { courses, enrollments, pending, schedules, students } } };
+  return {
+    status: 200,
+    body: { success: true, stats: { courses, enrollments, pending, schedules, students } },
+  };
 };
 
 module.exports = {
   getCourses,
+  getAllCourses,
   getPublicSchedules,
   submitEnrollment,
   getEnrollmentStatus,
   getEnrollmentsByEmail,
   requestRegistrationLink,
   completeRegistration,
+  linkEnrollmentsForUser,
   getStudentDashboard,
   getAllEnrollments,
   approveEnrollment,

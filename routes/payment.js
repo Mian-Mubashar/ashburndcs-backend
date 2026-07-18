@@ -1,6 +1,6 @@
 const express = require("express");
 const Stripe = require("stripe");
-const Payment = require("../models/Payment");
+const { Payment } = require("../models");
 const { sendMail } = require("../utils/mailer");
 
 const router = express.Router();

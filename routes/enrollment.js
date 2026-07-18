@@ -65,7 +65,7 @@ router.post("/enrollments/complete-registration", handle(enrollmentService.compl
 
 router.get("/student/dashboard", protect, async (req, res) => {
   try {
-    const result = await enrollmentService.getStudentDashboard(req.user._id);
+    const result = await enrollmentService.getStudentDashboard(req.user.id);
     res.status(result.status).json(result.body);
   } catch (error) {
     res.status(500).json({ error: "Failed to load dashboard" });

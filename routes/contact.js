@@ -1,5 +1,5 @@
 const express = require("express");
-const Contact = require("../models/Contact");
+const { Contact } = require("../models");
 const { sendMail, getAdminNotifyEmail } = require("../utils/mailer");
 const { adminContactFormEmail } = require("../utils/emailTemplates");
 

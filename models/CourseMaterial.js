@@ -1,17 +1,38 @@
-const mongoose = require("mongoose");
+"use strict";
 
-const courseMaterialSchema = new mongoose.Schema(
-  {
-    course: { type: mongoose.Schema.Types.ObjectId, ref: "Course", required: true },
-    title: { type: String, required: true, trim: true },
-    type: { type: String, enum: ["video", "document", "assignment"], required: true },
-    url: { type: String, default: "" },
-    fileUrl: { type: String, default: "" },
-    fileName: { type: String, default: "" },
-    content: { type: String, default: "" },
-    order: { type: Number, default: 0 },
-  },
-  { timestamps: true }
-);
+const { withMongoId } = require("../utils/modelHelpers");
 
-module.exports = mongoose.model("CourseMaterial", courseMaterialSchema);
+module.exports = (sequelize, DataTypes) => {
+  const CourseMaterial = sequelize.define(
+    "CourseMaterial",
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      courseId: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+      },
+      title: { type: DataTypes.STRING(255), allowNull: false },
+      type: {
+        type: DataTypes.ENUM("video", "document", "assignment"),
+        allowNull: false,
+      },
+      url: { type: DataTypes.STRING(1000), allowNull: false, defaultValue: "" },
+      fileUrl: { type: DataTypes.STRING(500), allowNull: false, defaultValue: "" },
+      fileName: { type: DataTypes.STRING(255), allowNull: false, defaultValue: "" },
+      content: { type: DataTypes.TEXT, allowNull: false, defaultValue: "" },
+      order: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    },
+    { tableName: "course_materials" }
+  );
+
+  CourseMaterial.associate = (models) => {
+    CourseMaterial.belongsTo(models.Course, { foreignKey: "courseId", as: "course" });
+  };
+
+  withMongoId(CourseMaterial);
+  return CourseMaterial;
+};

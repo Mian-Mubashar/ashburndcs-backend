@@ -47,6 +47,11 @@ router.post("/courses", async (req, res) => {
   res.status(result.status).json(result.body);
 });
 
+router.get("/courses", async (_req, res) => {
+  const result = await enrollmentService.getAllCourses();
+  res.status(result.status).json(result.body);
+});
+
 router.put("/courses/:id", async (req, res) => {
   const result = await enrollmentService.updateCourse(req.params.id, req.body);
   res.status(result.status).json(result.body);
