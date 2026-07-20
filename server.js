@@ -100,9 +100,27 @@ const start = async () => {
   try {
     warnMissingEnv();
     await connectDB();
-    await initMailer();
-    await seedCourses();
-    await seedAdmin();
+
+    // SMTP failure must never block API boot
+    try {
+      await initMailer();
+    } catch (mailErr) {
+      console.warn("[Mailer] skipped:", mailErr.message);
+    }
+
+    const { sequelize } = require("./models");
+    try {
+      await seedCourses();
+      await seedAdmin();
+    } catch (seedErr) {
+      console.warn("[Seed] failed — creating tables via sync, then retrying seed.");
+      console.warn("[Seed] reason:", seedErr.message);
+      await sequelize.sync();
+      console.log("[DB] Tables synced from models");
+      await seedCourses();
+      await seedAdmin();
+    }
+
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
