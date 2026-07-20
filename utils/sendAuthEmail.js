@@ -19,7 +19,7 @@ const formatResult = (result, successMessage) => {
   return {
     ok: false,
     emailSent: false,
-    message: result.error || "Could not send email. Configure SMTP in server .env.",
+    message: result.error || "Could not send email. Set MAIL_USER and MAIL_PASS in server .env.",
   };
 };
 
