@@ -5,8 +5,13 @@ const path = require("path");
 const Sequelize = require("sequelize");
 const process = require("process");
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || "development";
+const env = (process.env.NODE_ENV || "development").toLowerCase();
 const config = require(__dirname + "/../config/config.js")[env];
+if (!config) {
+  throw new Error(
+    `Unknown NODE_ENV="${process.env.NODE_ENV}". Use development, test, or production (lowercase).`
+  );
+}
 const db = {};
 
 let sequelize;
