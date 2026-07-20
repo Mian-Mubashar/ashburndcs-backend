@@ -1,104 +1,98 @@
 const nodemailer = require("nodemailer");
 
-let smtpTransporter;
-let mailMode = "none";
+let transporter = null;
 
-const getSmtpPass = () => (process.env.SMTP_PASS || "").replace(/\s/g, "");
+const clean = (value) => {
+  if (value == null) return "";
+  let v = String(value).trim();
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1);
+  }
+  return v.trim();
+};
 
-const isSmtpConfigured = () =>
-  Boolean(process.env.SMTP_USER?.trim() && getSmtpPass());
+const getMailUser = () =>
+  clean(process.env.MAIL_USER || process.env.SMTP_USER);
+
+const getMailPass = () =>
+  clean(process.env.MAIL_PASS || process.env.SMTP_PASS).replace(/\s/g, "");
+
+const isMailConfigured = () => Boolean(getMailUser() && getMailPass());
 
 const getFromAddress = () => {
-  const user = process.env.SMTP_USER?.trim();
-  if (!user) return process.env.MAIL_FROM || "ADCS Tech";
-
-  // Gmail only reliably delivers when From matches the authenticated account
-  const configured = process.env.MAIL_FROM || "";
-  if (configured.includes(user)) return configured;
-
+  const user = getMailUser();
+  if (!user) return "ADCS Tech <noreply@ashburndcs.com>";
+  const configured = clean(process.env.MAIL_FROM);
+  if (configured && configured.includes(user)) return configured;
   return `ADCS Tech <${user}>`;
 };
 
-const getAdminNotifyEmail = () => {
-  const direct =
-    process.env.ADMIN_NOTIFY_EMAIL?.trim() ||
-    process.env.MAIL_TO?.trim();
-  if (direct) return direct;
+const getAdminNotifyEmail = () =>
+  clean(process.env.ADMIN_NOTIFY_EMAIL) ||
+  clean(process.env.MAIL_TO) ||
+  getMailUser() ||
+  "ashburndcsolutions@gmail.com";
 
-  const fromList = (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((email) => email.trim())
-    .find(Boolean);
-  if (fromList) return fromList;
+/** Create Nodemailer transport once — no SMTP verify on boot. */
+const initMailer = async () => {
+  if (!isMailConfigured()) {
+    console.warn("[Mail] MAIL_USER / MAIL_PASS (or SMTP_*) missing — emails disabled");
+    transporter = null;
+    return "none";
+  }
 
-  return process.env.SMTP_USER?.trim() || "ashburndcsolutions@gmail.com";
+  transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: getMailUser(),
+      pass: getMailPass(),
+    },
+  });
+
+  console.log("[Mail] Nodemailer ready — from:", getFromAddress());
+  return "gmail";
 };
 
-const initMailer = async () => {
-  if (!isSmtpConfigured()) {
-    mailMode = "none";
-    console.error("═══════════════════════════════════════════════════════");
-    console.error("[Mailer] ✗ SMTP NOT CONFIGURED — emails will NOT be sent!");
-    console.error("[Mailer]   Set SMTP_USER and SMTP_PASS in ashburn-backend/.env");
-    console.error("═══════════════════════════════════════════════════════");
-    return mailMode;
-  }
-
-  try {
-    smtpTransporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: process.env.SMTP_USER.trim(),
-        pass: getSmtpPass(),
-      },
-    });
-
-    await smtpTransporter.verify();
-    mailMode = "smtp";
-    console.log("[Mailer] ✓ SMTP ready — sending from:", getFromAddress());
-    return mailMode;
-  } catch (error) {
-    mailMode = "none";
-    console.error("[Mailer] ✗ SMTP verify failed:", error.message);
-    console.error("[Mailer]   Tip: use Gmail App Password (no spaces needed in .env)");
-    return mailMode;
-  }
+const getTransporter = async () => {
+  if (transporter) return transporter;
+  await initMailer();
+  return transporter;
 };
 
 const sendMail = async ({ to, subject, html, replyTo }) => {
   const recipient = to || getAdminNotifyEmail();
-  console.log(`[Mailer] Sending → ${recipient} | "${subject}"`);
+  console.log(`[Mail] Sending → ${recipient} | "${subject}"`);
 
-  if (mailMode !== "smtp" || !smtpTransporter) {
-    const error = "SMTP not configured. Add SMTP_USER and SMTP_PASS to .env.";
-    console.error(`[Mailer] ✗ BLOCKED — ${error}`);
+  const tx = await getTransporter();
+  if (!tx) {
+    const error = "Mail not configured. Set MAIL_USER and MAIL_PASS in .env";
+    console.error(`[Mail] ✗ ${error}`);
     return { ok: false, error };
   }
 
   try {
-    const info = await smtpTransporter.sendMail({
+    const info = await tx.sendMail({
       from: getFromAddress(),
       to: recipient,
       replyTo,
       subject,
       html,
     });
-
-    console.log(`[Mailer] ✓ SENT → ${recipient} | id: ${info.messageId}`);
-    return { ok: true, messageId: info.messageId, mode: "smtp" };
+    console.log(`[Mail] ✓ SENT → ${recipient} | id: ${info.messageId}`);
+    return { ok: true, messageId: info.messageId, mode: "nodemailer" };
   } catch (error) {
-    console.error(`[Mailer] ✗ FAILED → ${recipient} | ${error.message}`);
+    console.error(`[Mail] ✗ FAILED → ${recipient} | ${error.message}`);
     return { ok: false, error: error.message };
   }
 };
 
 module.exports = {
   sendMail,
-  isSmtpConfigured,
   initMailer,
-  getMailMode: () => mailMode,
   getAdminNotifyEmail,
+  isSmtpConfigured: isMailConfigured,
+  getMailMode: () => (transporter ? "nodemailer" : "none"),
 };
