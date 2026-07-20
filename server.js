@@ -71,10 +71,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const warnMissingEnv = () => {
   const required = ["JWT_SECRET", "DB_NAME", "DB_USER"];
-  const recommended = ["SMTP_USER", "SMTP_PASS", "STRIPE_SECRET_KEY"];
+  const recommended = ["STRIPE_SECRET_KEY"];
+  const mailUser = process.env.MAIL_USER || process.env.SMTP_USER;
+  const mailPass = process.env.MAIL_PASS || process.env.SMTP_PASS;
 
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn("[WARN] SMTP not set — verification emails will NOT be delivered to Gmail.");
+  if (!mailUser || !mailPass) {
+    console.warn("[WARN] MAIL_USER / MAIL_PASS not set — emails will not send.");
   }
 
   required.forEach((key) => {
