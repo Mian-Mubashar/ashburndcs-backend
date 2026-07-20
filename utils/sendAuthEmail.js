@@ -12,14 +12,20 @@ const getAdminNotifyEmail = () =>
   process.env.MAIL_TO ||
   "ashburndcsolutions@gmail.com";
 
+const FRIENDLY_MAIL_FAIL =
+  "We couldn't send the email right now. Please try again in a few minutes.";
+
 const formatResult = (result, successMessage) => {
   if (result.ok) {
     return { ok: true, emailSent: true, message: successMessage };
   }
+  if (result.error) {
+    console.error("[Email] send failed:", result.error);
+  }
   return {
     ok: false,
     emailSent: false,
-    message: result.error || "Could not send email. Set MAIL_USER and MAIL_PASS in server .env.",
+    message: FRIENDLY_MAIL_FAIL,
   };
 };
 
