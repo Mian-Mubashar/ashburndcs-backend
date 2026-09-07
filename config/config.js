@@ -1,5 +1,8 @@
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+require("dotenv").config({
+  path: path.resolve(__dirname, "../.env"),
+  override: true,
+});
 
 /** Hostinger env UI often stores quotes as part of the value — strip them. */
 const cleanEnv = (value) => {

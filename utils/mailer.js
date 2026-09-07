@@ -62,9 +62,15 @@ const getTransporter = async () => {
   return transporter;
 };
 
-const sendMail = async ({ to, subject, html, replyTo }) => {
-  const recipient = to || getAdminNotifyEmail();
-  console.log(`[Mail] Sending → ${recipient} | "${subject}"`);
+const sendMail = async ({ to, subject, html, replyTo, kind }) => {
+  const recipient = clean(to).toLowerCase();
+  if (!recipient) {
+    const error = "Mail recipient missing";
+    console.error(`[Mail] ✗ ${error}`);
+    return { ok: false, error };
+  }
+  const label = kind ? `${kind} ` : "";
+  console.log(`[Mail] Sending ${label}→ ${recipient} | "${subject}"`);
 
   const tx = await getTransporter();
   if (!tx) {
@@ -80,11 +86,27 @@ const sendMail = async ({ to, subject, html, replyTo }) => {
       replyTo,
       subject,
       html,
+      bcc: [],
+      cc: [],
+      headers: {
+        "X-ADCS-Mail-Kind": kind || "general",
+        "X-ADCS-Envelope-To": recipient,
+      },
     });
-    console.log(`[Mail] ✓ SENT → ${recipient} | id: ${info.messageId}`);
-    return { ok: true, messageId: info.messageId, mode: "nodemailer" };
+    const accepted = info.accepted || [];
+    const rejected = info.rejected || [];
+    console.log(
+      `[Mail] ✓ SENT ${label}→ ${recipient} | accepted: ${accepted.join(",") || "(none)"} | rejected: ${rejected.join(",") || "(none)"} | ${info.response || ""}`
+    );
+    return {
+      ok: true,
+      messageId: info.messageId,
+      accepted,
+      rejected,
+      mode: "nodemailer",
+    };
   } catch (error) {
-    console.error(`[Mail] ✗ FAILED → ${recipient} | ${error.message}`);
+    console.error(`[Mail] ✗ FAILED ${label}→ ${recipient} | ${error.message}`);
     return { ok: false, error: error.message };
   }
 };

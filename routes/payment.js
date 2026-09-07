@@ -1,7 +1,7 @@
 const express = require("express");
 const Stripe = require("stripe");
 const { Payment } = require("../models");
-const { sendMail } = require("../utils/mailer");
+const { sendMail, getAdminNotifyEmail } = require("../utils/mailer");
 
 const router = express.Router();
 
@@ -50,6 +50,7 @@ router.post("/myemail", async (req, res) => {
     });
 
     await sendMail({
+      to: getAdminNotifyEmail(),
       subject: `Payment Confirmation — $${amount}`,
       replyTo: email,
       html: `

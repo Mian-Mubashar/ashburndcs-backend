@@ -236,6 +236,64 @@ const adminContactFormEmail = ({ name, email, phone, subject, message }) => {
   };
 };
 
+const formatUSPhoneDisplay = (value) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  const national = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (national.length !== 10) return value || "N/A";
+  return `+1 (${national.slice(0, 3)}) ${national.slice(3, 6)}-${national.slice(6)}`;
+};
+
+const adminCareerApplicationEmail = ({ user_name, user_email, user_phone, position, message }) => {
+  const safeName = escapeHtml(user_name);
+  const safeEmail = escapeHtml(user_email);
+  const safePhone = escapeHtml(formatUSPhoneDisplay(user_phone));
+  const safePosition = escapeHtml(position);
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
+
+  return {
+    subject: `Career Application: ${position}`,
+    html: baseTemplate(
+      "New Career Application",
+      `
+        <h2 style="margin:0 0 12px;color:#111827;">New Career Application</h2>
+        <p style="margin:0 0 20px;color:#6b7280;">Someone applied for a role on the ADCS Career page.</p>
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fafafa;margin-bottom:24px;">
+          ${infoRow("Name", safeName)}
+          ${infoRow("Email", safeEmail, { isLink: true })}
+          ${infoRow("Phone", safePhone)}
+          ${infoRow("Position", safePosition)}
+        </table>
+        <p style="margin:0 0 10px;color:#6b7280;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">
+          Cover letter / resume
+        </p>
+        <div style="background:#faf5ff;border-left:4px solid ${brandColor};border-radius:0 12px 12px 0;padding:20px 22px;color:#374151;font-size:15px;line-height:1.75;">
+          ${safeMessage}
+        </div>
+      `
+    ),
+  };
+};
+
+const careerApplicantEmail = ({ user_name, user_email, position }) => {
+  const safeName = escapeHtml(user_name);
+  const safePosition = escapeHtml(position);
+  const safeEmail = escapeHtml(user_email);
+
+  return {
+    subject: `We received your application — ${position}`,
+    html: baseTemplate(
+      "Application Received",
+      `
+        <h2 style="margin:0 0 12px;color:#111827;">Hello ${safeName},</h2>
+        <p>Thank you for applying for <strong>${safePosition}</strong> at Ashburn DCS.</p>
+        <p>We have received your application and our team will review it shortly. If your profile is a fit, we will contact you by email.</p>
+        <p style="color:#9ca3af;font-size:13px;">This confirmation was sent to ${safeEmail}. Please do not reply to this message.</p>
+      `
+    ),
+  };
+};
+
 module.exports = {
   verificationEmail,
   passwordResetEmail,
@@ -245,4 +303,6 @@ module.exports = {
   adminNewEnrollmentEmail,
   scheduleUpdatedEmail,
   adminContactFormEmail,
+  adminCareerApplicationEmail,
+  careerApplicantEmail,
 };
