@@ -8,13 +8,13 @@ const hashToken = (token) =>
  * Email links must use a single origin — take the first valid URL.
  */
 const getFrontendUrl = () => {
-  const raw = process.env.FRONTEND_URL || "http://localhost:3000";
+  const raw = process.env.FRONTEND_URL || "";
   const first = String(raw)
     .split(",")
     .map((part) => part.trim().replace(/^["']|["']$/g, ""))
     .find(Boolean);
 
-  return (first || "http://localhost:3000").replace(/\/$/, "");
+  return (first || "").replace(/\/$/, "");
 };
 
 const buildVerificationUrl = (token) =>

@@ -20,7 +20,7 @@ const cleanEnv = (value) => {
 
 /** Prefer IPv4 loopback — `localhost` can resolve to ::1 and Hostinger may deny it. */
 const resolveDbHost = (host) => {
-  const h = cleanEnv(host) || "127.0.0.1";
+  const h = cleanEnv(host) || "";
   if (h === "localhost" || h === "::1") return "127.0.0.1";
   return h;
 };
@@ -29,8 +29,8 @@ const dbUser = cleanEnv(process.env.DB_USER);
 const dbPassword = cleanEnv(process.env.DB_PASSWORD) ?? "";
 const dbName = cleanEnv(process.env.DB_NAME);
 const dbHost = resolveDbHost(process.env.DB_HOST);
-const dbPort = Number(cleanEnv(process.env.DB_PORT) || 3306);
-const dbDialect = cleanEnv(process.env.DB_DIALECT) || "mysql";
+const dbPort = Number(cleanEnv(process.env.DB_PORT));
+const dbDialect = cleanEnv(process.env.DB_DIALECT);
 
 const required = ["DB_NAME", "DB_USER", "DB_HOST", "DB_PORT"];
 const missing = required.filter((key) => !cleanEnv(process.env[key]));

@@ -16,59 +16,41 @@ const paymentRoutes = require("./routes/payment");
 const seedCourses = require("./config/seedCourses");
 const seedAdmin = require("./config/seedAdmin");
 const { initMailer } = require("./utils/mailer");
+const { allowedOrigins, isAllowedOrigin } = require("./utils/corsOrigins");
 
 const app = express();
-const PORT = Number(process.env.PORT) || 5000;
-const HOST = process.env.HOST || "0.0.0.0";
-
-const normalizeOrigin = (url) =>
-  String(url || "")
-    .trim()
-    .replace(/\/$/, "");
-
-const buildAllowedOrigins = () => {
-  const raw = process.env.FRONTEND_URL || "http://localhost:3000";
-  const list = raw
-    .split(",")
-    .map(normalizeOrigin)
-    .filter(Boolean);
-
-  const expanded = new Set(list);
-  for (const origin of list) {
-    try {
-      const parsed = new URL(origin);
-      if (parsed.hostname.startsWith("www.")) {
-        expanded.add(`${parsed.protocol}//${parsed.hostname.slice(4)}`);
-      } else if (parsed.hostname !== "localhost" && !/^\d+\.\d+\.\d+\.\d+$/.test(parsed.hostname)) {
-        expanded.add(`${parsed.protocol}//www.${parsed.hostname}`);
-      }
-    } catch {
-      /* ignore invalid */
-    }
-  }
-  return [...expanded];
-};
-
-const allowedOrigins = buildAllowedOrigins();
+const PORT = process.env.PORT;
+const HOST = process.env.HOST;
 
 const corsOptions = {
   origin(origin, callback) {
-    // Same-origin / server-to-server / Postman (no Origin header)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(normalizeOrigin(origin))) {
-      return callback(null, true);
-    }
+    if (!origin || isAllowedOrigin(origin)) return callback(null, true);
     console.warn(`[CORS] Blocked origin: ${origin}. Allowed: ${allowedOrigins.join(", ")}`);
     return callback(null, false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   optionsSuccessStatus: 204,
 };
 
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && isAllowedOrigin(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      req.headers["access-control-request-headers"] ||
+        "Content-Type,Authorization,X-Requested-With"
+    );
+    res.setHeader("Vary", "Origin");
+  }
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -126,9 +108,15 @@ const start = async () => {
       await seedAdmin();
     }
 
-    app.listen(PORT, HOST, () => {
-      console.log(`Server running on http://${HOST}:${PORT}`);
-    });
+    if (!PORT) {
+      throw new Error("PORT is not set. Use .env locally, or let Hostinger inject PORT.");
+    }
+
+    const onListen = () => {
+      console.log(`Server running on ${HOST || "port"}:${PORT}`);
+    };
+    if (HOST) app.listen(Number(PORT), HOST, onListen);
+    else app.listen(Number(PORT), onListen);
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

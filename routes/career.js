@@ -26,9 +26,7 @@ router.post("/career", async (req, res) => {
 
     const applicantEmail = String(user_email || "").trim().toLowerCase();
     const payload = { user_name, user_email: applicantEmail, user_phone, position, message };
-    const adminEmail = (
-      getAdminNotifyEmail() || "ashburndcsolutions@gmail.com"
-    ).toLowerCase();
+    const adminEmail = String(getAdminNotifyEmail() || "").toLowerCase();
     const adminMail = adminCareerApplicationEmail(payload);
     const applicantMail = careerApplicantEmail(payload);
 

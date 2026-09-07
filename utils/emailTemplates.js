@@ -275,6 +275,25 @@ const adminCareerApplicationEmail = ({ user_name, user_email, user_phone, positi
   };
 };
 
+const contactUserConfirmationEmail = ({ name, email, subject }) => {
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeSubject = escapeHtml(subject);
+
+  return {
+    subject: `We received your message — ${subject}`,
+    html: baseTemplate(
+      "Message Received",
+      `
+        <h2 style="margin:0 0 12px;color:#111827;">Hello ${safeName},</h2>
+        <p>Thank you for contacting Ashburn DCS. We have received your message about <strong>${safeSubject}</strong>.</p>
+        <p>Our team will review it and reply by email within one business day.</p>
+        <p style="color:#9ca3af;font-size:13px;">This confirmation was sent to ${safeEmail}. Please do not reply to this message.</p>
+      `
+    ),
+  };
+};
+
 const careerApplicantEmail = ({ user_name, user_email, position }) => {
   const safeName = escapeHtml(user_name);
   const safePosition = escapeHtml(position);
@@ -303,6 +322,7 @@ module.exports = {
   adminNewEnrollmentEmail,
   scheduleUpdatedEmail,
   adminContactFormEmail,
+  contactUserConfirmationEmail,
   adminCareerApplicationEmail,
   careerApplicantEmail,
 };

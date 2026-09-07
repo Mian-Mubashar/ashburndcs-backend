@@ -1,4 +1,4 @@
-const { sendMail } = require("./mailer");
+const { sendMail, getAdminNotifyEmail } = require("./mailer");
 const {
   verificationEmail,
   passwordResetEmail,
@@ -6,11 +6,6 @@ const {
   enrollmentApprovedEmail,
   adminNewEnrollmentEmail,
 } = require("./emailTemplates");
-
-const getAdminNotifyEmail = () =>
-  process.env.ADMIN_NOTIFY_EMAIL ||
-  process.env.MAIL_TO ||
-  "ashburndcsolutions@gmail.com";
 
 const FRIENDLY_MAIL_FAIL =
   "We couldn't send the email right now. Please try again in a few minutes.";

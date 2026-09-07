@@ -23,18 +23,16 @@ const getMailPass = () =>
 const isMailConfigured = () => Boolean(getMailUser() && getMailPass());
 
 const getFromAddress = () => {
-  const user = getMailUser();
-  if (!user) return "ADCS Tech <noreply@ashburndcs.com>";
   const configured = clean(process.env.MAIL_FROM);
-  if (configured && configured.includes(user)) return configured;
-  return `ADCS Tech <${user}>`;
+  if (configured) return configured;
+  const user = getMailUser();
+  return user ? `ADCS Tech <${user}>` : "";
 };
 
 const getAdminNotifyEmail = () =>
   clean(process.env.ADMIN_NOTIFY_EMAIL) ||
   clean(process.env.MAIL_TO) ||
-  getMailUser() ||
-  "ashburndcsolutions@gmail.com";
+  getMailUser();
 
 /** Create Nodemailer transport once — no SMTP verify on boot. */
 const initMailer = async () => {
