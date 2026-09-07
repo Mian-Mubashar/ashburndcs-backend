@@ -1,7 +1,8 @@
 const path = require("path");
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
-  override: true,
+  // Keep Hostinger / system PORT, NODE_ENV, etc. if already set
+  override: false,
 });
 
 /** Hostinger env UI often stores quotes as part of the value — strip them. */
