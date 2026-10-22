@@ -26,7 +26,7 @@ router.get("/contact/test-mail", async (_req, res) => {
   });
 });
 
-router.post("/contact", async (req, res) => {
+router.post(["/contact", "/contact/"], async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
 

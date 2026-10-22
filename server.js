@@ -35,22 +35,26 @@ const corsOptions = {
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && isAllowedOrigin(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Credentials", "true");
+  if (!origin || isAllowedOrigin(origin)) {
+    if (origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
     res.setHeader(
       "Access-Control-Allow-Headers",
       req.headers["access-control-request-headers"] ||
-      "Content-Type,Authorization,X-Requested-With"
+      "Content-Type,Authorization,X-Requested-With,Accept"
     );
-    res.setHeader("Vary", "Origin");
   }
-  if (req.method === "OPTIONS") return res.sendStatus(204);
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
   next();
 });
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

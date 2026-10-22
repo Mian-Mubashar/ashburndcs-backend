@@ -8,7 +8,7 @@ const {
 
 const router = express.Router();
 
-router.post("/career", async (req, res) => {
+router.post(["/career", "/career/"], async (req, res) => {
   try {
     const { user_name, user_email, user_phone, position, message } = req.body;
 
