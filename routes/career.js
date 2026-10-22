@@ -61,10 +61,10 @@ router.post(["/career", "/career/"], async (req, res) => {
       console.error("Career applicant email failed:", applicantResult.error);
     }
 
-    if (!adminResult.ok && !applicantResult.ok) {
+    if (!adminResult.ok) {
       return res.status(503).json({
         success: false,
-        error: "Application saved but emails could not be sent. Please try again or call us.",
+        error: "Your application was saved, but our team could not be notified. Please contact us by phone.",
       });
     }
 

@@ -32,6 +32,8 @@ const getFromAddress = () => {
 const getAdminNotifyEmail = () =>
   clean(process.env.ADMIN_NOTIFY_EMAIL) ||
   clean(process.env.MAIL_TO) ||
+  clean(process.env.ADMIN_EMAILS).split(",")[0].trim() ||
+  clean(process.env.ADMIN_EMAIL) ||
   getMailUser();
 
 /** Create Nodemailer transport once — no SMTP verify on boot. */
@@ -93,9 +95,24 @@ const sendMail = async ({ to, subject, html, replyTo, kind }) => {
     });
     const accepted = info.accepted || [];
     const rejected = info.rejected || [];
-    console.log(
-      `[Mail] ✓ SENT ${label}→ ${recipient} | accepted: ${accepted.join(",") || "(none)"} | rejected: ${rejected.join(",") || "(none)"} | ${info.response || ""}`
+    const recipientAccepted = accepted.some(
+      (address) => String(address).toLowerCase() === recipient
     );
+    console.log(
+      `[Mail] ${recipientAccepted ? "✓ SMTP ACCEPTED" : "✗ SMTP DID NOT ACCEPT"} ${label}→ ${recipient} | accepted: ${accepted.join(",") || "(none)"} | rejected: ${rejected.join(",") || "(none)"} | ${info.response || ""}`
+    );
+    if (!recipientAccepted) {
+      return {
+        ok: false,
+        error: rejected.length
+          ? `SMTP rejected recipient: ${rejected.join(", ")}`
+          : "SMTP did not accept the recipient",
+        messageId: info.messageId,
+        accepted,
+        rejected,
+        mode: "nodemailer",
+      };
+    }
     return {
       ok: true,
       messageId: info.messageId,

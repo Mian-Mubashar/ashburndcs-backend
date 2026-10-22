@@ -79,19 +79,16 @@ router.post(["/contact", "/contact/"], async (req, res) => {
       console.log("[Contact] Skipped user confirmation — form email is the admin address");
     }
 
-    if (!adminResult.ok && !userResult.ok) {
+    if (!adminResult.ok) {
       console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.error("[Contact] ✗ BOTH EMAILS FAILED TO DELIVER!");
+      console.error("[Contact] ✗ ADMIN NOTIFICATION FAILED!");
       console.error(`  Admin Error: ${adminResult.error}`);
-      console.error(`  User Error:  ${userResult.error}`);
+      console.error(`  User Confirmation: ${userResult.ok ? "sent" : userResult.error}`);
       console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-      return res.json({
-        success: true,
-        message: "Message received. We’ll reply within one business day.",
-        confirmationSentTo: null,
-        adminNotified: false,
-        emailError: adminResult.error,
+      return res.status(503).json({
+        success: false,
+        error: "Your message was saved, but our team could not be notified. Please contact us by phone.",
       });
     }
 
@@ -112,4 +109,3 @@ router.post(["/contact", "/contact/"], async (req, res) => {
 });
 
 module.exports = router;
-
