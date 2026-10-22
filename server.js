@@ -42,7 +42,7 @@ app.use((req, res, next) => {
     res.setHeader(
       "Access-Control-Allow-Headers",
       req.headers["access-control-request-headers"] ||
-        "Content-Type,Authorization,X-Requested-With"
+      "Content-Type,Authorization,X-Requested-With"
     );
     res.setHeader("Vary", "Origin");
   }

@@ -56,9 +56,12 @@ router.post("/contact", async (req, res) => {
     }
 
     if (!adminResult.ok && !userResult.ok) {
-      return res.status(503).json({
-        success: false,
-        error: "Message saved but emails could not be sent. Please try WhatsApp or call us directly.",
+      console.warn("[Contact] Message saved in database, but email delivery failed:", adminResult.error);
+      return res.json({
+        success: true,
+        message: "Message received. We’ll reply within one business day.",
+        confirmationSentTo: null,
+        adminNotified: false,
       });
     }
 
